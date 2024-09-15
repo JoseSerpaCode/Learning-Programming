@@ -1,0 +1,261 @@
+body{
+    background-color: #333;
+    color: #fff;
+}
+
+.block{
+    background-color: purple;
+    width: 200px;
+    height: 200px;
+}
+
+.inline{ /* Los elementos en linea no tienen medida */
+    background-color:coral;
+    color: inherit;
+    width: 200px;
+    height: 200px;
+}
+
+/* Propiedad de Margin */
+
+/* Margin
+
+    Es la propiedad que nos permite generar espacio entre elementos
+    Es un shorthand (Propiedad abreviada) que controla los 4 lados posibles a los que dar márgernes.
+    Margin-top: Margen superior
+    Margin-bottom: Margen inferior
+    Margin-right: Margen derecho
+    Margin-left: Margen izquierdo
+
+    Admite hasta 4 valores que van en el orden de las agujas del reloj
+    4 valores -> margin: top  right  bottom  left;
+    3 valores -> margin: top left/right bottom;
+    2 valores -> margin: top/bottom left/right
+    1 valor -> margin: top/right/bottom/left        ---> Mismo margen a los cuatro lados
+
+*/
+
+.block2{
+    background-color: purple;
+    width: 200px;
+    height: 200px;
+    margin: 100px 50px 10px 200px;
+}
+
+.inline2{  /* Los elementos en linea solo tienen márgenes horizontales y no verticales */
+    background-color:coral;
+    color: inherit;
+    margin-left: 100px;
+}
+
+/* Auto */
+
+/* Hay que declarar un ancho */
+
+.block3{
+    background-color: purple;
+    width: 200px;
+    height: 200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/*
+
+Margin-right: auto   -> Pegar el elemento a la derecha
+Margin-left: auto    -> Pegar el elemento a la izquierda
+
+Si se utilizan ambos a la vez --> Se centra el elemento
+
+*/
+
+
+/* Errores comúnes - Malas prácticas */
+
+/* 
+
+----> *{
+    margin: 0;
+    padding: 0;
+}
+
+*/
+
+/* 
+
+LO QUE SI SE RECOMIENDA HACER ES DARLE UN MARGEN 0 AL BODY para reestablecer los margenes
+
+poner padding 0 al body no tienen sentido, ya que el body no tiene padding
+
+*/
+
+body{
+    margin: 0;
+}
+
+.header{
+    background-color: tomato;
+    height: 35px;
+}
+
+.block4{
+    background-color: purple;
+    width: 200px;
+    height: 200px;
+    margin-top: 100px;
+    /* margin: 0 auto; ----> Esto hace que por CASCADA se sobreescriban los margenes superiores*/
+
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+/* Padding 
+
+    Es la propiedad que nos permite generar espacio interno entre
+    el borde y la caja. Es un shorthand (Propiedad abreviada) que controla los 
+    4 lados posibles a los que dar márgernes.
+
+    padding-top: Padding superior
+    padding-bottom: Padding inferior
+    padding-right: Padding derecho
+    padding-left: Padding izquierdo
+
+    Admite hasta 4 valores que van en el orden de las agujas del reloj
+    4 valores -> padding: top  right  bottom  left;
+    3 valores -> padding: top left/right bottom;
+    2 valores -> padding: top/bottom left/right
+    1 valor -> padding: top/right/bottom/left
+*/
+
+.block5{
+    background-color: purple;
+    width: 200px;
+    height: 200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 50px 20px;
+}
+
+.inline3{
+    background-color:coral;
+    color: inherit;
+    /* padding-left: 100px;
+    padding-bottom: 100px;
+    margin-left: 100px; */
+}
+
+
+/* 
+
+¿Cuando utilizar margin o padding? 
+
+Separar la caja de los elementos elementos que lo rodean --> Margin
+
+Aumentar tamaño de la caja y separar los bordes del contenido --> Padding
+
+*/
+
+.buttons{
+    background-color: sandybrown;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    margin-top: 30px;
+}
+
+.button{
+    margin-left: 200px;
+    padding: 10px;
+}
+
+
+/* Border
+
+    Es la propiedad que nos permite modificar el borde de la caja
+
+    Es un shorthand (Propiedad abreviada) que agrupa 3 propiedades
+
+    border-width: ancho del borde
+        border-top-width
+        border-right-width
+        border-bottom-width
+        border-left-width
+
+    border-style: estilo del borde
+        border-top-style
+        border-right-style
+        border-bottom-style
+        border-left-style
+
+        LISTADO DE VALORES PARA STYLE:
+            none
+            hidden
+            dotted
+            dashed
+            solid
+            double
+            groove
+            ridge
+            inset
+            outset
+
+    border-color: color del borde
+        border-top-color
+        border-right-color
+        border-bottom-color
+        border-left-color
+
+*/
+
+.buttons2{
+    background-color: rgb(0, 116, 224);
+    padding-top: 20px;
+    padding-bottom: 20px;
+    margin-top: 30px;
+}
+
+.button2{
+    margin-left: 200px;
+    padding: 10px;
+    border: 20px solid red;
+
+    border-width: 20px;
+    border-style: solid;
+    border-color: red;
+
+    border-right-color: blue;
+    border-left-width: 10px;
+
+    border-style: inset;
+
+}
+
+/* Box-sizing
+
+    Es la propiedad que nos permite controlar el cálculo que hace el
+    navegador a la hora de modificar las propiedades content, padding
+    y border
+
+    Los 2 valores que podemos darle son
+        content-box --> valor por defecto
+        border-box  --> cálculo de tamaño de elemento
+        incluyendo el padding y el border
+
+*/
+
+.block6{
+    background-color: purple;
+    width: 200px;
+    height: 200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 20px;
+    box-sizing: border-box;
+    border: 5px solid red;
+}
+
+/* Para no tener que realizar esto en todas las cajas, se utiliza el selector universal */
+
+*{
+    box-sizing: border-box;
+}

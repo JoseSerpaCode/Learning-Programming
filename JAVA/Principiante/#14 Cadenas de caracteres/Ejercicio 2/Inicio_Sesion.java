@@ -1,0 +1,46 @@
+import java.util.Scanner;
+import java.io.IOException;
+
+public class Inicio_Sesion{
+  public static void main(String args[]){  
+
+   Scanner leer = new Scanner(System.in);
+   String nombre1 = "", contraseña1 = "", nombre2 = "", contraseña2 = "";
+
+
+   System.out.println("");
+   System.out.println("               Bienvenido a la empresa Jose SA");
+
+
+   System.out.println("");
+   System.out.println("Registrarse*");
+   System.out.println("");
+   System.out.println("¿Cuál es tu nombre?");
+   nombre1 = leer.nextLine();
+
+   System.out.println("");
+   System.out.println("¿Cuál es tu contraseña?");
+   contraseña1 = leer.nextLine();
+
+   System.out.println("");
+   System.out.println("*******************************************************");
+   System.out.println("");
+   System.out.println("Iniciar sesión*");
+   System.out.println("");
+   System.out.println("¿Cuál es tu nombre?");
+   nombre2 = leer.nextLine();
+
+   System.out.println("");
+   System.out.println("¿Cuál es tu contraseña?");
+   contraseña2 = leer.nextLine();
+   System.out.println("");
+   System.out.println("*******************************************************");
+   System.out.println("");
+
+   if(nombre1.equals(nombre2) && contraseña1.equals(contraseña2)){
+     System.out.println("Inicio de sesión correcto");
+   } else{
+     System.out.println("nombre de ususario o paswword incorrectos");
+   }
+ }
+}

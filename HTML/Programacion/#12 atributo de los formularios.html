@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atributos de los formularios</title>
+</head>
+
+<body>
+
+<form>
+<label>
+    Nombre
+</label>
+<input type="text" placeholder="Introduce tu Nombre" required></input> <br>
+
+<label>
+    Apellido
+</label>
+<input type="text" placeholder="Introduce tu Apellido" required></input> <br>
+
+<label>
+    Email
+</label>
+<input type="email" placeholder="Introduce tu Email" required></input> <hr><br>
+
+<label>readonly</label><input type="text" value="Mensaje" readonly></input> <br>
+
+<label>disabled</label><input type="text" value="Hola" disabled> <br>
+
+<label>numeros min-max</label><input type="number" min="1" max="7" required> <br>
+
+<label>caracteres min-max</label><input type="text" minlength="5" maxlength="10" required><br>
+
+<select name="number">
+<option value="one">one</option>
+<option value="two" selected>two</option>
+</select> <br>
+
+<label>autofocus</label><input type="text" value="" autofocus>
+
+<button>enviar</button>
+</form>
+
+</body>
+</html>

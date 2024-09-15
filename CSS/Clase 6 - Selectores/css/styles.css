@@ -1,0 +1,86 @@
+/* Selectores */
+
+/* 
+    *Selectores simples
+        Selectores elementales
+            Selector universal -> *
+            Selector de tipo o etiqueta -> Nombre de la etiquta
+
+        Selectores de atributos
+            id -> id del elemento
+            clase -> clase de elemento
+            otros atributos
+                [atributo]
+                [atributo=valor]
+                [atributo^=valor] Comprueba si inicia con la misma palabra
+                [atributo*=valor] Da igual en que posición se encuentre
+                [atributo$=valor] Determina si termina con esa palabra
+                [atributo| =valor]
+
+    *Selectores compuestos -----> styles2
+*/
+
+.text,
+.text-2,
+.text-3,
+.text-4{
+    background-color: slateblue;
+}
+
+/* *{
+    background-color: rgb(236, 135, 2);
+}
+
+h1{
+    background-color: blueviolet;
+}
+
+p{
+    background-color: cornflowerblue;
+}
+
+ul{
+    background-color: red;
+}
+
+li{
+    background-color: rgb(167, 167, 255);
+} */
+
+
+#title{     /* No es recomendable dar estilos con id, debido a que solo se podrán aplicar a un
+               Elemento, puesto que es un identificador */
+    background-color: aquamarine;
+}
+
+.title{
+    background-color: darkviolet;
+}
+
+.text{
+    background-color: aquamarine;
+}
+
+[href]{
+    background-color: mediumorchid;
+}
+
+[href="https://google.com"]{
+    background-color: magenta;
+}
+
+[href^="color"]{      /* Comprueba si inicia con la misma palabra */
+    background-color: crimson;
+}
+
+[href*="modo"]{      /* Da igual en que posición se encuentre */
+    background-color: rgb(20, 220, 20);
+}
+
+[href$="rojo"]{      /* Determina si termina con esa palabra */
+    background-color: rgb(255, 251, 0);
+}
+
+[lang|="en"]{
+    background-color: aqua;
+}

@@ -1,0 +1,21 @@
+import java.util.Scanner;
+
+public class Strings_{
+  public static void main(String args[]){
+
+   Scanner leer = new Scanner(System.in);
+   String nombre1 = "", nombre2 = "";
+
+   System.out.println("¿Cuál es el primer nombre?");
+   nombre = leer.nextLine();
+
+   System.out.println("¿Cuál es el segundo nombre?");
+   nombre = leer.nextLine();
+
+   if(nombre1 == nombre2){
+     System.out.println("Los nombres son iguales");
+   } else{
+     System.out.println("Los nombres son diferentes");
+   }
+ }
+}

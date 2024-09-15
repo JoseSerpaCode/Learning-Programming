@@ -1,0 +1,21 @@
+*{
+    box-sizing: border-box;
+}
+
+body{
+    margin: 0;
+}
+
+.text{
+    text-align: center;
+    font-size: 80px;
+}
+
+.box{
+    width: 1000px;
+    padding: 30px 0px;
+    margin-top: 50px;
+    text-align: center; /* Centrar el contenido de la caja */
+    margin-left: auto;  /* Centrar la caja */
+    margin-right: auto;
+}

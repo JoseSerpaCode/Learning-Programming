@@ -1,0 +1,23 @@
+/* 
+*Selectores compuestos
+
+    Selectores agrupados -> Se agrupan los selectores separados por comas y se escribe
+    el estilo una sola vez
+
+    Selectores combinadores
+        Selector descendiente
+        Selector de hermano siguiente +
+        Selector de hermanos siguientes ~
+*/
+
+div .title-2{
+    background-color: teal;
+}
+
+.text-2 + .title-2{
+    background-color: tomato;
+}
+
+.text-2 ~ p{
+    background-color: rgb(71, 120, 255);
+}

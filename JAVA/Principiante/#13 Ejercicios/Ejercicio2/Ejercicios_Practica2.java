@@ -1,0 +1,57 @@
+public class Ejercicios_Practica2{
+  public static void main(String args[]){
+
+   int i = 0, a = 99;
+
+   System.out.println("Serie con for: ");
+
+   for(i=1; i<= 5; i++){
+    if(i<5){
+     System.out.print(i+",");
+     System.out.print(a+",");
+     a--;
+    }else{
+     System.out.print(i+",");
+     System.out.println(a);
+    }
+   }
+
+   System.out.println("");
+   System.out.println("Serie con while: ");
+
+   i = 1;
+   a = 99;
+
+   while(i<= 5){
+    if(i<5){
+     System.out.print(i+",");
+     System.out.print(a+",");
+     a--;
+    }else{
+     System.out.print(i+",");
+     System.out.println(a);
+    }
+    i++;
+   }
+
+   System.out.println("");
+   System.out.println("Serie con do-while: ");
+
+   i=1;
+   a = 99;
+
+   do{
+    if(i<5){
+     System.out.print(i+",");
+     System.out.print(a+",");
+     a--;
+    }else{
+     System.out.print(i+",");
+     System.out.println(a);
+    }
+    i++;
+
+  }while(i<=5);
+
+ }
+}

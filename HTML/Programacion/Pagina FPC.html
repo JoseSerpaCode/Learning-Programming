@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=
+    , initial-scale=1.0">
+    <title>Formulario</title>
+</head>
+<body>
+    
+    <h1 style="text-align: center;color:darksalmon;"> ENCUESTA SOBRE EL FÚTBOL PROFESIONAL COLOMBIANO </h1><hr>
+
+    <form action="enviar.html" method="get">
+
+        <fieldset>
+            
+            <legend><h2><i>Preguntas Básicas</i></h2></legend>
+
+            <input type="text" placeholder="Introduce tu nombre" required></input>
+            <input type="text" placeholder="Introduce tu apellido" required></input>
+            <input type="text" placeholder="Introduce tu sexo" required></input>
+            <input type="number" placeholder="Introduce tu edad" required></input>
+        
+            <h3> Seleccione la región a la que pertenece </h3>
+
+            <select name="region">
+
+                <option value="Caribe">Caribe</option>
+                <option value="Pacífico">Pacífico</option>
+                <option value="Orinoquía">Orinoquía</option>
+                <option value="Amazonía">Amazonía</option>
+                <option value="Andina">Andina</option>
+                <option value="Insular">Insular</option>
+
+            </select>
+
+            <h3> Seleccione su equipo </h3>
+
+                <select name="Futbol">
+
+                    <optgroup label="Equipos de la Costa">
+                    <option value="Junior de Barranquilla">Junior de Barranquilla</option>
+                    <option value="Barranquilla FC">Barranquilla FC</option>
+                    <option value="Unión Magdalena">Unión Magdalena</option>
+                    <option value="Real Cartagena">Real Cartagena</option>
+                    <option value="Real Sincelejo">Real Sincelejo</option>
+                    <option value="Valledupar">Valledupar</option>
+                    <option value="Jaguares de Cordoba">Jaguares de Cordoba</option>
+                    </optgroup>
+
+                    <optgroup label="Equipos de la Capital">
+                        <option value="Santa Fe">Santa Fe</option>
+                        <option value="Millonarios">Millonarios</option>
+                        <option value="Equidad">Equidad</option>
+                        <option value="Fortaleza">Fortaleza</option>
+                        <option value="Bogotá FC">Bogotá FC</option>
+                        <option value="Tigres">Tigres</option>
+                    </optgroup>
+
+                    <optgroup label="Equipos del valle">
+                        <option value="Cali">Cali</option>
+                        <option value="America de Cali">America de Cali</option>
+                        <option value="Atlético Cali">Atlético Cali</option>
+                        <option value="Cortuluá">Cortuluá</option>
+                        <option value="Orsomarso">Orsomarso</option>
+                    </optgroup>
+
+                    <optgroup label="Equipos de Antioquia">
+                        <option value="Atlético Nacional">Atlético Nacional</option>
+                        <option value="Independiente Medellin">Independiente Medellin</option>
+                        <option value="Águilas Doradas">Águilas Doradas</option>
+                        <option value="Envigado">Envigado</option>
+                        <option value="Leones FC">Leones FC</option>
+                    </optgroup>
+
+                    <optgroup label="Equipos de Santander">
+                        <option value="Atlético Bucaramanga">Atlético Bucaramanga</option>
+                        <option value="Cúcuta Deportivo">Cúcuta Deportivo</option>
+                        <option value="Real Santander">Real Santander</option>
+                        <option value="Alianza Petrolera">Alianza Petrolera</option>
+                    </optgroup>
+
+                    <optgroup label="Equipos de Caldas">
+                        <option value="Once Caldas">Once Caldas</option>
+                        <option value="Deportivo Pereira">Deportivo Pereira</option>
+                        <option value="Deportes Quindío">Deportes Quindío</option>
+                    </optgroup>
+
+                </select>
+        </fieldset>
+
+        <h2> <i>Opinando sobre el FPC</i></h2>
+
+        <h3> ¿Quién es el más grande? </h3>
+        
+        <input type="radio", name="gender"></input>
+        <label>
+            Once Caldas
+        </label> <br>
+        
+        <input type="radio", name="gender"></input>
+        <label>
+            Junior
+        </label> <br>
+        
+        <input type="radio", name="gender"></input>
+        <label>
+            Millonarios
+        </label> <br>
+        
+        <input type="radio", name="gender"></input>
+        <label>
+            Nacional
+        </label> <br>
+
+        <input type="radio", name="gender"></input>
+        <label>
+            Santa Fe
+        </label> <br>
+
+        <input type="radio", name="gender"></input>
+        <label>
+            America de Cali
+        </label> <br>
+
+        <input type="radio", name="gender"></input>
+        <label>
+            Cali
+        </label> <br>
+
+            
+        <h3> ¿Que formato prefiere? </h3>
+            <input type="radio", name="formato"></input>
+            <label>
+                Formato Europeo
+            </label> <br>
+            
+            <input type="radio", name="formato"></input>
+            <label>
+                Formato Corto
+            </label> <br>
+
+
+        <h3> Responda las siguientes preguntas a su críterio</h3>
+        
+        <fieldset>
+
+            <legend> ¿Y para ti el mejor es...?</legend>
+            <label>
+                ¿Cuantas copas sudamericas equivalen para usted a una libertadores?
+            </label> <br>
+            <input type="number" min="1" max="8" required></input> <br>
+
+            <label>
+                Mencione un jugador que todo equipo debe tener
+            </label> <br>
+            <input type="text" minlength="1"> </input><br>
+
+            <label>
+                ¿Quién es el 10 más importante en la historia de colombia?
+            </label> <br>
+            <input type="text" minlength="1"> </input><br>
+
+            <br><input type="file"></input><br>
+
+        </fieldset>
+
+        <br><button>Enviar</button><input type="reset">
+
+    </form>
+
+    <hr>
+    <footer> <i>Realizado por José Serpa Medina</i></footer>
+
+</body>
+</html>

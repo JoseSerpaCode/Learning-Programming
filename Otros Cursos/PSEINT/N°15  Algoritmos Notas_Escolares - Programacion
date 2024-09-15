@@ -1,0 +1,89 @@
+//La institucion educativa La Fe desea llevar el control de las notas de los estudiantes, para ello obtiene tres notas y una autoevaluacion, cada nota tiene
+//un porcentaje asignado, La nota 1 25%, Nota 2 35%, Nota 3 30% y autoevaluacion 10%. Se debe calcular el porcentaje de cada nota y obtener la definitiva.
+//Si la definitiva es menor a 2.5 perdió la materia, menor o igual a 3.1 debe recuperar la materia, mayor a 3.2 y menor a 3.7 "basico", menor o igual a 4.1
+//bueno, menor o  igual a 4.6 alto, mayor a 4.6 superior.
+
+Algoritmo Notas_Escolares
+	
+	Definir Nota_1, Nota_2, Nota_3, autoevalucion, definitiva Como real;
+	Definir  materia Como Caracter;
+	
+	Escribir "Nombre de la materia:";
+	Leer materia;
+	
+	Escribir "Escribir primera nota";
+	Leer Nota_1;
+	
+	Escribir "Escribir segunda nota";
+	Leer Nota_2;
+	
+	Escribir "Escribir tercera nota";
+	Leer Nota_3;
+	
+	Escribir "Escribir nota de a autoevaluación";
+	Leer autoevalucion;
+	
+	Nota_1 = Nota_1 * 0.25;
+	Nota_2 = Nota_2 * 0.35;
+	Nota_3 = Nota_3 * 0.30;
+	autoevalucion = autoevalucion * 0.10;
+	
+	definitiva = Nota_1 + Nota_2 + Nota_3 + autoevalucion;
+	
+	Imprimir "La definitva es:", definitiva;
+	
+	Si definitiva <= 2.5 Entonces;
+		
+		Imprimir "Perdió la materia";
+		
+	SiNo;
+		
+		Si definitiva > 2.5 y definitiva <= 3.1 Entonces;
+			
+			Imprimir "Debe recuperar la materia";
+			
+		Sino;
+			
+		FinSi;
+			
+			Si definitiva >= 3.2 y definitiva < 3.7 Entonces;
+				
+				Imprimir "Tiene un Básico en la materia";
+				
+			SiNo;
+				
+				
+			FinSi;
+				
+				Si definitiva >= 3.7 y definitiva <= 4.1 Entonces;
+					
+					Imprimir "Tiene un Bueno en la materia";
+					
+				Sino;
+					
+					
+				FinSi;
+					
+					Si definitiva >= 4.2 y definitiva <= 4.6 Entonces;
+						
+						Imprimir "Tiene un Alto en la materia";
+						
+					SiNo;
+						
+						
+					FinSi;
+						
+						Si definitiva > 4.6 Entonces;
+							
+							Imprimir "Tiene un Superior en la materia";
+							
+						SiNo;
+							
+							
+						FinSi;
+	
+	FinSi;
+	
+	
+	
+FinAlgoritmo

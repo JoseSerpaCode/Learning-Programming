@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Horario de Clases</title>
+</head>
+<body>
+    <h1 style="text-align: center; color: chocolate;"><i><p> Horario de clases</p></i></h1>
+    <hr>
+
+    <style>
+
+        table{
+            font-family: sans-serif;
+            border: 2px saddlebrown;
+            border-collapse: collapse;
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        caption{
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        th,
+        td{
+            border: 2px solid grey;
+            padding: .5rem;
+        }
+
+        tr:nth-child(4) td:nth-child(2), tr:nth-child(7) td:nth-child(2){
+            background-color: burlywood;
+            letter-spacing: 90px;
+            padding-left: 50px;
+            text-transform: uppercase;
+        }
+
+
+        td:first-child,
+        th,
+        tfoot {
+            background-color: burlywood;
+        }
+
+        col{
+            background-color:bisque;
+        }
+
+    </style>
+    <Table>
+
+        <caption><strong>Horario</strong></caption>
+        <colgroup>
+            <col>
+            <col>
+            <col>
+            <col>
+            <col>
+            <col>
+        </colgroup>
+        
+        <thead>
+            <tr>
+                <th></th>
+                <th>Lunes</th>
+                <th>Martes</th>
+                <th>Miercoles</th>
+                <th>Jueves</th>
+                <th>Viernes</th>
+            </tr>
+        </thead>
+        <tr>
+            <td>6:00-6:50</td>
+            <td>Ed Fisica</td>
+            <td>Castellano</td>
+            <td>Filosofia</td>
+            <td>Matematicas</td>
+            <td>Filosofia</td>
+        </tr>
+        <tr>
+            <td>7:00-7:50</td>
+            <td>Sociales</td>
+            <td rowspan="2">Matematicas</td>
+            <td>Castellano</td>
+            <td rowspan="2">Quimica</td>
+            <td>Ingles</td>
+        </tr>
+        <tr>
+            <td>7:50-8:40</td>
+            <td>Matematicas</td>
+            <td>Fisica</td>
+            <td>Artistica</td>
+        </tr>
+        <tr>
+            <td><br>8:40-8:55</td>
+            <td colspan="5"><br> Descanso</td>
+        </tr>
+        <tr>
+            <td><br>8:55-9:45</td>
+            <td><br>Matematicas</td>
+            <td><br>Ingles</td>
+            <td><br>Estadistica</td>
+            <td><br>Fisica</td>
+            <td rowspan="2"><br>Fisica</td>
+        </tr>
+        <tr>
+            <td>9:55-10:35</td>
+            <td>Fisica</td>
+            <td>Biologia</td>
+            <td>Quimica</td>
+            <td>Religion</td>
+        </tr>
+        <tr>
+            <td><br>10:35-10:50</td>
+            <td colspan="5"><br>Descanso</td>
+        </tr>
+        <tr>
+            <td><br>10:50-11:45</td>
+            <td><br>Quimica</td>
+            <td><br>Sociales</td>
+            <td rowspan="2"><br>Matematicas</td>
+            <td><br>Castellano</td>
+            <td><br>Castellano</td>
+        </tr>
+
+        <tr>
+            <td>11:55-12:40</td>
+            <td>Ingles</td>
+            <td>Estadistica</td>
+            <td>Matematicas</td>
+            <td>Filosofia</td>
+        </tr>
+
+        <tfoot>
+
+            <tr>
+                <td colspan="5">TOTAL DE ASIGNATURAS</td>
+                <td colspan="5">12</td>
+            </tr>
+
+        </tfoot>
+    </Table>
+</body>
+</html>
