@@ -4,6 +4,6 @@ public class Clase_Principal {
     public static void main(String[] args) {
         
         Recursividad mensajero = new Recursividad();
-        mensajero.Contador();
+        mensajero.Contador2(3);
     }
 }
