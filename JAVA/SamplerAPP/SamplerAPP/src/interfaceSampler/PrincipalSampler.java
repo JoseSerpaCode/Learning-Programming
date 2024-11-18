@@ -1,18 +1,384 @@
 package interfaceSampler;
 
+import java.util.concurrent.TimeUnit;
+import java.awt.Color;
+import java.awt.FileDialog;
+import java.awt.Frame;
+import java.awt.HeadlessException;
+import java.io.*;
+import javax.sound.sampled.*;
+import javax.sound.sampled.Clip;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JSlider;
+import javax.swing.event.ChangeEvent;
 
 /**
  * @author José_Serpa
  */
 public class PrincipalSampler extends javax.swing.JFrame {
-    
+
+    private final File[] audioFiles; // Array para almacenar el archivo de audio de cada pad
+    private final Clip[] audioClips; // Array para controlar la reproducción de cada pad
+    private final JSlider[] volumeSliders; // Array de sliders de volumen
+    private static final int NUMBER_OF_PADS = 6; // Número de pads
+    private BackgroundMusicPlayer musicPlayer; // Declarar como atributo de clase
+
     public PrincipalSampler() {
         initComponents();
 
         ImageIcon icon = new ImageIcon(getClass().getResource("/img/beatLogoRedimensionado.png"));
-        setIconImage(icon.getImage());   
+        setIconImage(icon.getImage());
+
+        // Inicializa los arrays
+        audioFiles = new File[NUMBER_OF_PADS];
+        audioClips = new Clip[NUMBER_OF_PADS];
+        volumeSliders = new JSlider[NUMBER_OF_PADS]; // Inicialización de los sliders
+
+        // Cargar los sonidos guardados al iniciar el programa
+        loadAudioFiles();
+
+        // Configuración para asignar sonido a los pads
+        JLabel[] asignarSonido = {label_SeleccionarSonido1, label_SeleccionarSonido2, label_SeleccionarSonido3, label_SeleccionarSonido4, label_SeleccionarSonido5, label_SeleccionarSonido6};
+
+        PanelRound[] panelAsignar = {botonSelecccionarSonido_Pad1, botonSelecccionarSonido_Pad2, botonSelecccionarSonido_Pad3, botonSelecccionarSonido_Pad4, botonSelecccionarSonido_Pad5, botonSelecccionarSonido_Pad6};
+
+        for (int i = 0; i < asignarSonido.length; i++) {
+            final int index = i; // Usa el índice directamente para evitar confusión
+            asignarSonido[i].addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseClicked(java.awt.event.MouseEvent evt) {
+                    selectAudioFile(index);
+                }
+
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    panelAsignar[index].setBackground(panelAsignar[index].getBackground().darker());
+                }
+
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    panelAsignar[index].setBackground(panelAsignar[index].getBackground().brighter());
+                }
+            });
+        }
+
+        //Configuración para Consultar sonido a los pads
+        JLabel[] consultarSonido = {label_ConsultarSonido1, label_ConsultarSonido2, label_ConsultarSonido3, label_ConsultarSonido4, label_ConsultarSonido5, label_ConsultarSonido6};
+
+        PanelRound[] panelConsultar = {botonConsultarSonido_Pad1, botonConsultarSonido_Pad2, botonConsultarSonido_Pad3, botonConsultarSonido_Pad44, botonConsultarSonido_Pad5, botonConsultarSonido_Pad6};
+
+        for (int i = 0; i < consultarSonido.length; i++) {
+            final int index = i; // Usa el índice directamente para evitar confusión
+            consultarSonido[i].addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseClicked(java.awt.event.MouseEvent evt) {
+                    showAudioFileInfo(index);
+                }
+
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    panelConsultar[index].setBackground(panelConsultar[index].getBackground().darker());
+                }
+
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    panelConsultar[index].setBackground(panelConsultar[index].getBackground().brighter());
+                }
+            });
+        }
+
+        //Configuración para Eliminar sonido a los pads
+        JLabel[] eliminarSonido = {label_EliminarSonido1, label_EliminarSonido2, label_EliminarSonido3, label_EliminarSonido4, label_EliminarSonido5, label_EliminarSonido6};
+
+        PanelRound[] panelEliminar = {botonEliminarSonido_Pad1, botonEliminarSonido_Pad2, botonEliminarSonido_Pad3, botonEliminarSonido_Pad4, botonEliminarSonido_Pad5, botonEliminarSonido_Pad66};
+
+        for (int i = 0; i < eliminarSonido.length; i++) {
+            final int index = i; // Usa el índice directamente para evitar confusión
+            eliminarSonido[i].addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseClicked(java.awt.event.MouseEvent evt) {
+                    removeAudioFile(index);
+                }
+
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    panelEliminar[index].setBackground(panelEliminar[index].getBackground().darker());
+                }
+
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    panelEliminar[index].setBackground(panelEliminar[index].getBackground().brighter());
+                }
+            });
+        }
+
+        // Array para los paneles de los pads
+        PanelRound[] padPanels = {padSound1, padSound2, padSound3, padSound4, padSound5, padSound6};
+
+        // Array para los labels de los pads
+        JLabel[] labels = {labelPadSound1, labelPadSound2, labelPadSound3, labelPadSound4, labelPadSound5, labelPadSound6};
+
+        // Configuración para los pads de reproducción
+        for (int i = 0; i < labels.length; i++) {
+            final int padIndex = i;
+
+            labels[i].addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mousePressed(java.awt.event.MouseEvent evt) {
+                    padPanels[padIndex].setBackground(padPanels[padIndex].getBackground().darker()); // Cambia a un color más oscuro al presionar
+                }
+
+                @Override
+                public void mouseReleased(java.awt.event.MouseEvent evt) {
+                    padPanels[padIndex].setBackground(padPanels[padIndex].getBackground().brighter()); // Regresa al color original al soltar
+                    try {
+                        playAudio(padIndex);
+                    } catch (IOException ex) {
+                        java.util.logging.Logger.getLogger(PrincipalSampler.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                    }
+                }
+            });
+        }
+
+        // Inicializa los sliders de volumen
+        volumeSliders[0] = ControlVolumen1;
+        volumeSliders[1] = ControlVolumen2;
+        volumeSliders[2] = ControlVolumen3;
+        volumeSliders[3] = ControlVolumen4;
+        volumeSliders[4] = ControlVolumen5;
+        volumeSliders[5] = ControlVolumen6;
+
+        for (int i = 0; i < NUMBER_OF_PADS; i++) {
+            final int padIndex = i; // Usa el índice específico para cada slider y cada pad
+
+            // Aplicar la apariencia personalizada al slider actual
+            volumeSliders[i].setUI(new CustomSliderUI(volumeSliders[i]));
+
+            volumeSliders[i].setMinorTickSpacing(5);
+            volumeSliders[i].setMajorTickSpacing(20);
+            volumeSliders[i].setPaintTicks(true);
+            volumeSliders[i].setValue(100); // Volumen al 100% inicialmente
+
+            volumeSliders[i].addChangeListener((ChangeEvent evt) -> {
+                adjustVolume(evt, padIndex); // Pasamos el índice del pad correspondiente
+            });
+        }
+
+        //Configuración para Controles de Cancion
+        JLabel[] controlesCancion = {reiniciarCancion, pauseCancion, subirCancion, playCancion};
+
+        PanelRound[] panelControlesCancion = {panelReiniciarCancion, panelPauseCancion, panelSubirCancion, panelPlayCancion};
+
+        for (int i = 0; i < controlesCancion.length; i++) {
+            final int index = i; // Usa el índice directamente para evitar confusión
+            controlesCancion[i].addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    panelControlesCancion[index].setBackground(panelControlesCancion[index].getBackground().darker());
+                }
+
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    panelControlesCancion[index].setBackground(panelControlesCancion[index].getBackground().brighter());
+                }
+            });
+        }
+
+        musicPlayer = new BackgroundMusicPlayer(
+                barraDeProgresoCancion,
+                label_MusicTimeInicial,
+                label_MusicTimeFinal,
+                label_TituloCancion
+        );
+
+    }
+
+    // Método para ajustar el volumen de un pad específico cuando el slider cambia
+    private void adjustVolume(ChangeEvent evt, int padIndex) {
+        JSlider slider = (JSlider) evt.getSource();
+        float volume = slider.getValue() / 100.0f; // Convertir el valor del slider a un rango de 0.0 a 1.0
+        setClipVolume(padIndex, volume); // Ajustar el volumen del clip correspondiente al pad
+    }
+
+    // Método para establecer el volumen del clip de audio
+    private void setClipVolume(int padNumber, float volume) {
+        if (audioClips[padNumber] != null) {
+            try {
+                // Ajustar el volumen manualmente usando la ganancia
+                FloatControl volumeControl = (FloatControl) audioClips[padNumber].getControl(FloatControl.Type.MASTER_GAIN);
+
+                // Si el volumen es 0, establecerlo en -80 dB (que sería silencio)
+                if (volume == 0) {
+                    volumeControl.setValue(-80.0f); // Silence
+                } else {
+                    // Si el volumen es mayor que 0, usamos una escala logarítmica para que sea más natural
+                    volumeControl.setValue(20f * (float) Math.log10(volume)); // Escala logarítmica para el volumen
+                }
+            } catch (IllegalArgumentException e) {
+                System.out.println("No se pudo establecer el control de volumen para el clip.");
+            }
+        }
+    }
+
+    // Método para guardar la configuración de los pads
+    private void saveAudioFiles() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("audioFiles.txt"))) {
+            for (File audioFile : audioFiles) {
+                if (audioFile != null) {
+                    writer.write(audioFile.getAbsolutePath());
+                }
+                writer.newLine();
+            }
+            JOptionPane.showMessageDialog(this, "Sonidos guardados correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Error al guardar los sonidos.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    // Método que carga los sonidos guardados al iniciar el programa
+    private void loadAudioFiles() {
+        try (BufferedReader reader = new BufferedReader(new FileReader("audioFiles.txt"))) {
+            String line;
+            int i = 0;
+            while ((line = reader.readLine()) != null && i < audioFiles.length) {
+                File audioFile = new File(line);
+                if (audioFile.exists()) {
+                    audioFiles[i] = audioFile;
+                }
+                i++;
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar los sonidos.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    // Método para reestablecer todos los pads
+    private void resetAudioFiles() {
+
+        // Confirma la eliminación con el usuario
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "¿Estás seguro de que deseas eliminar todos los sonidos asignados a los pads?",
+                "Confirmar eliminación",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        // Si el usuario confirma, elimina el sonido
+        if (confirm == JOptionPane.YES_OPTION) {
+            for (int i = 0; i < audioFiles.length; i++) {
+                audioFiles[i] = null; // Reinicia los archivos de audio
+            }
+            JOptionPane.showMessageDialog(this, "Sonidos eliminados correctamente.", "Eliminar Sonido", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    // Método para seleccionar el audio de un pad usando FileDialog
+    private void selectAudioFile(int padNumber) {
+        FileDialog fileDialog = new FileDialog((Frame) null, "Seleccionar archivo de audio", FileDialog.LOAD);
+        fileDialog.setFile("*.mp3;*.wav"); // Filtro para archivos MP3 y WAV
+        fileDialog.setVisible(true);
+
+        String directory = fileDialog.getDirectory();
+        String filename = fileDialog.getFile();
+
+        if (directory != null && filename != null) {
+            audioFiles[padNumber] = new File(directory, filename);
+            System.out.println("Archivo asignado al pad " + (padNumber + 1) + ": " + audioFiles[padNumber].getName());
+        }
+    }
+
+    // Método para reproducir el sonido de un pad específico
+    private void playAudio(int padNumber) throws IOException {
+        File audioFile = audioFiles[padNumber];
+        if (audioFile == null) {
+            System.out.println("No se ha asignado un sonido al pad: " + (padNumber + 1));
+            return;
+        }
+
+        try {
+            // Detenemos la reproducción anterior, si la hay
+            if (audioClips[padNumber] != null && audioClips[padNumber].isRunning()) {
+                audioClips[padNumber].stop();
+            }
+
+            // Cargamos y reproducimos el nuevo archivo
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
+            audioClips[padNumber] = AudioSystem.getClip();
+            audioClips[padNumber].open(audioStream);
+
+            // Establecer el volumen en el momento de la reproducción
+            setClipVolume(padNumber, volumeSliders[padNumber].getValue() / 100.0f); // Usar el slider correspondiente al pad actual
+
+            audioClips[padNumber].start();
+        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+            JOptionPane.showMessageDialog(this, "Error al reproducir el audio.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void showAudioFileInfo(int padNumber) {
+        // Obtén el archivo asignado al pad correspondiente
+        File audioFile = audioFiles[padNumber];
+
+        // Si no hay ningún archivo asignado, muestra un mensaje de advertencia
+        if (audioFile == null) {
+            JOptionPane.showMessageDialog(this, "No hay pista seleccionada.", "Información de Pista", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        // Extrae el nombre del archivo y su formato
+        String fileName = audioFile.getName();
+        String format = fileName.substring(fileName.lastIndexOf('.') + 1).toUpperCase();
+
+        // Verifica si el formato del archivo es compatible (solo MP3 y WAV permitidos)
+        if (!format.equals("MP3") && !format.equals("WAV")) {
+            JOptionPane.showMessageDialog(this, "Formato de archivo no compatible.", "Información de Pista", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        // Intenta obtener la duración del archivo de audio
+        try {
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile); // Carga el archivo de audio
+            AudioFormat audioFormat = audioStream.getFormat(); // Obtiene el formato del audio
+            long frames = audioStream.getFrameLength(); // Obtiene el número de frames en el archivo
+            double durationInSeconds = (frames + 0.0) / audioFormat.getFrameRate(); // Calcula la duración en segundos
+
+            // Muestra la información del archivo en un cuadro de diálogo
+            JOptionPane.showMessageDialog(this,
+                    "Nombre: " + fileName + "\nDuración: " + String.format("%.2f", durationInSeconds) + " segundos\nFormato: " + format,
+                    "Información de Pista",
+                    JOptionPane.INFORMATION_MESSAGE);
+        } catch (HeadlessException | IOException | UnsupportedAudioFileException e) {
+// Si ocurre un error al obtener la información, muestra un mensaje de error
+            JOptionPane.showMessageDialog(this, "Error al obtener la duración de la pista.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    // Método para eliminar el archivo de audio de un pad específico
+    private void removeAudioFile(int padNumber) {
+        // Verifica si hay un archivo asignado al pad
+        if (audioFiles[padNumber] == null) {
+            JOptionPane.showMessageDialog(this, "No hay un sonido asignado a este pad.", "Eliminar Sonido", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        // Confirma la eliminación con el usuario
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "¿Estás seguro de que deseas eliminar el sonido asignado al pad " + (padNumber + 1) + "?",
+                "Confirmar eliminación",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        // Si el usuario confirma, elimina el sonido
+        if (confirm == JOptionPane.YES_OPTION) {
+            audioFiles[padNumber] = null; // Elimina el archivo de audio asignado
+            volumeSliders[padNumber].setValue(100); // Restablece el volumen al 100%
+
+            JOptionPane.showMessageDialog(this, "Sonido eliminado correctamente del pad " + (padNumber + 1) + ".", "Eliminar Sonido", JOptionPane.INFORMATION_MESSAGE);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -38,7 +404,6 @@ public class PrincipalSampler extends javax.swing.JFrame {
         label_TextoReestablecer = new javax.swing.JLabel();
         panelPrincipal_Dos = new interfaceSampler.PanelRound();
         panelHeaderPads = new interfaceSampler.PanelRound();
-        labelAjustesIcon = new javax.swing.JLabel();
         labelTitulo_PADS = new javax.swing.JLabel();
         jSeparator1 = new javax.swing.JSeparator();
         labelPerfil_Seleccionado = new javax.swing.JLabel();
@@ -50,9 +415,9 @@ public class PrincipalSampler extends javax.swing.JFrame {
         labelPadSound3 = new javax.swing.JLabel();
         padSound4 = new interfaceSampler.PanelRound();
         labelPadSound4 = new javax.swing.JLabel();
-        padSound11 = new interfaceSampler.PanelRound();
+        padSound5 = new interfaceSampler.PanelRound();
         labelPadSound5 = new javax.swing.JLabel();
-        padSound14 = new interfaceSampler.PanelRound();
+        padSound6 = new interfaceSampler.PanelRound();
         labelPadSound6 = new javax.swing.JLabel();
         label_NumeroDelPAD_1 = new javax.swing.JLabel();
         label_NumeroDelPAD_2 = new javax.swing.JLabel();
@@ -60,7 +425,75 @@ public class PrincipalSampler extends javax.swing.JFrame {
         label_NumeroDelPAD_4 = new javax.swing.JLabel();
         label_NumeroDelPAD_5 = new javax.swing.JLabel();
         label_NumeroDelPAD_6 = new javax.swing.JLabel();
-        panelRelleno = new javax.swing.JPanel();
+        panelPrincipal_Tres = new javax.swing.JPanel();
+        panelHeaderPads1 = new interfaceSampler.PanelRound();
+        labelTitulo_PADS1 = new javax.swing.JLabel();
+        botonSelecccionarSonido_Pad1 = new interfaceSampler.PanelRound();
+        label_SeleccionarSonido1 = new javax.swing.JLabel();
+        botonSelecccionarSonido_Pad2 = new interfaceSampler.PanelRound();
+        label_SeleccionarSonido2 = new javax.swing.JLabel();
+        botonSelecccionarSonido_Pad3 = new interfaceSampler.PanelRound();
+        label_SeleccionarSonido3 = new javax.swing.JLabel();
+        label_AjustePAD_1 = new javax.swing.JLabel();
+        label_AjustePAD_2 = new javax.swing.JLabel();
+        label_AjustePAD_3 = new javax.swing.JLabel();
+        label_AjustePAD_4 = new javax.swing.JLabel();
+        label_AjustePAD_5 = new javax.swing.JLabel();
+        label_AjustePAD_6 = new javax.swing.JLabel();
+        botonSelecccionarSonido_Pad4 = new interfaceSampler.PanelRound();
+        label_SeleccionarSonido4 = new javax.swing.JLabel();
+        botonSelecccionarSonido_Pad5 = new interfaceSampler.PanelRound();
+        label_SeleccionarSonido5 = new javax.swing.JLabel();
+        botonSelecccionarSonido_Pad6 = new interfaceSampler.PanelRound();
+        label_SeleccionarSonido6 = new javax.swing.JLabel();
+        ControlVolumen1 = new javax.swing.JSlider();
+        ControlVolumen2 = new javax.swing.JSlider();
+        ControlVolumen3 = new javax.swing.JSlider();
+        ControlVolumen4 = new javax.swing.JSlider();
+        ControlVolumen5 = new javax.swing.JSlider();
+        ControlVolumen6 = new javax.swing.JSlider();
+        botonConsultarSonido_Pad1 = new interfaceSampler.PanelRound();
+        label_ConsultarSonido1 = new javax.swing.JLabel();
+        botonConsultarSonido_Pad2 = new interfaceSampler.PanelRound();
+        label_ConsultarSonido2 = new javax.swing.JLabel();
+        botonConsultarSonido_Pad3 = new interfaceSampler.PanelRound();
+        label_ConsultarSonido3 = new javax.swing.JLabel();
+        botonConsultarSonido_Pad44 = new interfaceSampler.PanelRound();
+        label_ConsultarSonido4 = new javax.swing.JLabel();
+        botonConsultarSonido_Pad5 = new interfaceSampler.PanelRound();
+        label_ConsultarSonido5 = new javax.swing.JLabel();
+        botonConsultarSonido_Pad6 = new interfaceSampler.PanelRound();
+        label_ConsultarSonido6 = new javax.swing.JLabel();
+        botonEliminarSonido_Pad1 = new interfaceSampler.PanelRound();
+        label_EliminarSonido1 = new javax.swing.JLabel();
+        botonEliminarSonido_Pad2 = new interfaceSampler.PanelRound();
+        label_EliminarSonido2 = new javax.swing.JLabel();
+        botonEliminarSonido_Pad3 = new interfaceSampler.PanelRound();
+        label_EliminarSonido3 = new javax.swing.JLabel();
+        botonEliminarSonido_Pad4 = new interfaceSampler.PanelRound();
+        label_EliminarSonido4 = new javax.swing.JLabel();
+        botonEliminarSonido_Pad5 = new interfaceSampler.PanelRound();
+        label_EliminarSonido5 = new javax.swing.JLabel();
+        botonEliminarSonido_Pad66 = new interfaceSampler.PanelRound();
+        label_EliminarSonido6 = new javax.swing.JLabel();
+        panelPrincipal_Cuatro = new interfaceSampler.PanelRound();
+        label_VolPaneles = new javax.swing.JLabel();
+        sliderVolumenPaneles = new javax.swing.JSlider();
+        label_VolCancion = new javax.swing.JLabel();
+        sliderVolumenCancion = new javax.swing.JSlider();
+        panelPrincipal_Cinco = new interfaceSampler.PanelRound();
+        label_TituloCancion = new javax.swing.JLabel();
+        label_MusicTimeFinal = new javax.swing.JLabel();
+        label_MusicTimeInicial = new javax.swing.JLabel();
+        barraDeProgresoCancion = new javax.swing.JProgressBar();
+        panelReiniciarCancion = new interfaceSampler.PanelRound();
+        reiniciarCancion = new javax.swing.JLabel();
+        panelPauseCancion = new interfaceSampler.PanelRound();
+        pauseCancion = new javax.swing.JLabel();
+        panelSubirCancion = new interfaceSampler.PanelRound();
+        subirCancion = new javax.swing.JLabel();
+        panelPlayCancion = new interfaceSampler.PanelRound();
+        playCancion = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("PadLand");
@@ -70,10 +503,10 @@ public class PrincipalSampler extends javax.swing.JFrame {
         bg.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         panelPrincipal_Uno.setBackground(new java.awt.Color(18, 18, 18));
-        panelPrincipal_Uno.setRoundBottomLeft(20);
-        panelPrincipal_Uno.setRoundBottomRight(20);
-        panelPrincipal_Uno.setRoundTopLeft(20);
-        panelPrincipal_Uno.setRoundTopRight(20);
+        panelPrincipal_Uno.setRoundBottomLeft(25);
+        panelPrincipal_Uno.setRoundBottomRight(25);
+        panelPrincipal_Uno.setRoundTopLeft(25);
+        panelPrincipal_Uno.setRoundTopRight(25);
 
         panelPerfil.setBackground(new java.awt.Color(18, 18, 18));
 
@@ -109,7 +542,7 @@ public class PrincipalSampler extends javax.swing.JFrame {
         panelGuardar.setRoundTopLeft(30);
         panelGuardar.setRoundTopRight(30);
 
-        botonGuardar.setBackground(new java.awt.Color(255, 255, 255));
+        botonGuardar.setBackground(new java.awt.Color(204, 204, 204));
         botonGuardar.setRoundBottomLeft(25);
         botonGuardar.setRoundBottomRight(25);
         botonGuardar.setRoundTopLeft(25);
@@ -120,16 +553,27 @@ public class PrincipalSampler extends javax.swing.JFrame {
         label_Guardar.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         label_Guardar.setText("Guardar");
         label_Guardar.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        label_Guardar.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                label_GuardarMouseClicked(evt);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                label_GuardarMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                label_GuardarMouseExited(evt);
+            }
+        });
 
         javax.swing.GroupLayout botonGuardarLayout = new javax.swing.GroupLayout(botonGuardar);
         botonGuardar.setLayout(botonGuardarLayout);
         botonGuardarLayout.setHorizontalGroup(
             botonGuardarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(label_Guardar, javax.swing.GroupLayout.DEFAULT_SIZE, 99, Short.MAX_VALUE)
+            .addComponent(label_Guardar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 99, Short.MAX_VALUE)
         );
         botonGuardarLayout.setVerticalGroup(
             botonGuardarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(label_Guardar, javax.swing.GroupLayout.DEFAULT_SIZE, 26, Short.MAX_VALUE)
+            .addComponent(label_Guardar, javax.swing.GroupLayout.DEFAULT_SIZE, 24, Short.MAX_VALUE)
         );
 
         label_TituloGuardar.setBackground(new java.awt.Color(210, 210, 210));
@@ -148,15 +592,16 @@ public class PrincipalSampler extends javax.swing.JFrame {
         label_TextoGuardar.setFont(new java.awt.Font("Roboto Medium", 0, 13)); // NOI18N
         label_TextoGuardar.setForeground(new java.awt.Color(230, 230, 230));
         label_TextoGuardar.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        label_TextoGuardar.setText("<html>Guardar los sonidos de los pads en el perfil seleccionado.<html>");
+        label_TextoGuardar.setText("<html>Guardar todos los cambios de los pads en el perfil seleccionado.<html>");
 
         javax.swing.GroupLayout panelTextoGuardarLayout = new javax.swing.GroupLayout(panelTextoGuardar);
         panelTextoGuardar.setLayout(panelTextoGuardarLayout);
         panelTextoGuardarLayout.setHorizontalGroup(
             panelTextoGuardarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelTextoGuardarLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(label_TextoGuardar, javax.swing.GroupLayout.DEFAULT_SIZE, 151, Short.MAX_VALUE))
+            .addGroup(panelTextoGuardarLayout.createSequentialGroup()
+                .addGap(14, 14, 14)
+                .addComponent(label_TextoGuardar, javax.swing.GroupLayout.PREFERRED_SIZE, 146, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         panelTextoGuardarLayout.setVerticalGroup(
             panelTextoGuardarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -169,16 +614,16 @@ public class PrincipalSampler extends javax.swing.JFrame {
         panelGuardar.setLayout(panelGuardarLayout);
         panelGuardarLayout.setHorizontalGroup(
             panelGuardarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(panelTextoGuardar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(panelGuardarLayout.createSequentialGroup()
                 .addGroup(panelGuardarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(panelTextoGuardar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(panelGuardarLayout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(panelGuardarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(label_TituloGuardar, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(botonGuardar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addContainerGap())
+                        .addGap(15, 15, 15)
+                        .addComponent(botonGuardar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(panelGuardarLayout.createSequentialGroup()
+                        .addGap(14, 14, 14)
+                        .addComponent(label_TituloGuardar, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         panelGuardarLayout.setVerticalGroup(
             panelGuardarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -187,9 +632,9 @@ public class PrincipalSampler extends javax.swing.JFrame {
                 .addComponent(label_TituloGuardar)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(panelTextoGuardar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(botonGuardar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(18, Short.MAX_VALUE))
+                .addContainerGap(14, Short.MAX_VALUE))
         );
 
         panelReestablecer.setBackground(new java.awt.Color(31, 31, 31));
@@ -198,23 +643,34 @@ public class PrincipalSampler extends javax.swing.JFrame {
         panelReestablecer.setRoundTopLeft(30);
         panelReestablecer.setRoundTopRight(30);
 
-        botonReestablecer.setBackground(new java.awt.Color(255, 255, 255));
+        botonReestablecer.setBackground(new java.awt.Color(204, 204, 204));
         botonReestablecer.setRoundBottomLeft(25);
         botonReestablecer.setRoundBottomRight(25);
         botonReestablecer.setRoundTopLeft(25);
         botonReestablecer.setRoundTopRight(25);
 
-        label_Reestablecer.setBackground(new java.awt.Color(210, 210, 210));
+        label_Reestablecer.setBackground(new java.awt.Color(204, 204, 204));
         label_Reestablecer.setFont(new java.awt.Font("Roboto", 1, 12)); // NOI18N
         label_Reestablecer.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         label_Reestablecer.setText("Reestablecer");
         label_Reestablecer.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        label_Reestablecer.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                label_ReestablecerMouseClicked(evt);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                label_ReestablecerMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                label_ReestablecerMouseExited(evt);
+            }
+        });
 
         javax.swing.GroupLayout botonReestablecerLayout = new javax.swing.GroupLayout(botonReestablecer);
         botonReestablecer.setLayout(botonReestablecerLayout);
         botonReestablecerLayout.setHorizontalGroup(
             botonReestablecerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(label_Reestablecer, javax.swing.GroupLayout.DEFAULT_SIZE, 99, Short.MAX_VALUE)
+            .addComponent(label_Reestablecer, javax.swing.GroupLayout.DEFAULT_SIZE, 101, Short.MAX_VALUE)
         );
         botonReestablecerLayout.setVerticalGroup(
             botonReestablecerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -244,8 +700,8 @@ public class PrincipalSampler extends javax.swing.JFrame {
         panelTextoReestablecerLayout.setHorizontalGroup(
             panelTextoReestablecerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelTextoReestablecerLayout.createSequentialGroup()
-                .addComponent(label_TextoReestablecer, javax.swing.GroupLayout.PREFERRED_SIZE, 138, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 22, Short.MAX_VALUE))
+                .addComponent(label_TextoReestablecer, javax.swing.GroupLayout.PREFERRED_SIZE, 145, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         panelTextoReestablecerLayout.setVerticalGroup(
             panelTextoReestablecerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -257,12 +713,14 @@ public class PrincipalSampler extends javax.swing.JFrame {
         panelReestablecerLayout.setHorizontalGroup(
             panelReestablecerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelReestablecerLayout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(15, 15, 15)
                 .addGroup(panelReestablecerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(botonReestablecer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(label_TituloReestablecer, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(panelTextoReestablecer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(panelTextoReestablecer, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(panelReestablecerLayout.createSequentialGroup()
+                        .addGroup(panelReestablecerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(label_TituloReestablecer, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(botonReestablecer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, Short.MAX_VALUE))))
         );
         panelReestablecerLayout.setVerticalGroup(
             panelReestablecerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -281,13 +739,12 @@ public class PrincipalSampler extends javax.swing.JFrame {
         panelPrincipal_UnoLayout.setHorizontalGroup(
             panelPrincipal_UnoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelPrincipal_UnoLayout.createSequentialGroup()
-                .addGap(16, 16, 16)
-                .addGroup(panelPrincipal_UnoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(panelPerfil, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(panelPrincipal_UnoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(panelGuardar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(panelReestablecer, javax.swing.GroupLayout.PREFERRED_SIZE, 163, Short.MAX_VALUE)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(13, 13, 13)
+                .addGroup(panelPrincipal_UnoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(panelGuardar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(panelPerfil, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(panelReestablecer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(11, Short.MAX_VALUE))
         );
         panelPrincipal_UnoLayout.setVerticalGroup(
             panelPrincipal_UnoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -296,36 +753,22 @@ public class PrincipalSampler extends javax.swing.JFrame {
                 .addComponent(panelPerfil, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(panelGuardar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(panelReestablecer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(21, Short.MAX_VALUE))
+                .addGap(30, 30, 30)
+                .addComponent(panelReestablecer, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(29, Short.MAX_VALUE))
         );
 
-        bg.add(panelPrincipal_Uno, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 20, 190, 412));
+        bg.add(panelPrincipal_Uno, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 50, 190, 412));
 
         panelPrincipal_Dos.setBackground(new java.awt.Color(18, 18, 18));
-        panelPrincipal_Dos.setRoundBottomLeft(10);
-        panelPrincipal_Dos.setRoundBottomRight(10);
-        panelPrincipal_Dos.setRoundTopLeft(10);
-        panelPrincipal_Dos.setRoundTopRight(10);
+        panelPrincipal_Dos.setRoundBottomLeft(25);
+        panelPrincipal_Dos.setRoundBottomRight(25);
+        panelPrincipal_Dos.setRoundTopLeft(25);
+        panelPrincipal_Dos.setRoundTopRight(25);
 
         panelHeaderPads.setBackground(new java.awt.Color(20, 20, 20));
-        panelHeaderPads.setRoundBottomLeft(10);
-        panelHeaderPads.setRoundBottomRight(10);
-        panelHeaderPads.setRoundTopLeft(10);
-        panelHeaderPads.setRoundTopRight(10);
-
-        labelAjustesIcon.setBackground(new java.awt.Color(210, 210, 210));
-        labelAjustesIcon.setFont(new java.awt.Font("Roboto", 1, 24)); // NOI18N
-        labelAjustesIcon.setForeground(new java.awt.Color(210, 210, 210));
-        labelAjustesIcon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        labelAjustesIcon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/ajustesIcon.png"))); // NOI18N
-        labelAjustesIcon.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        labelAjustesIcon.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                labelAjustesIconMouseClicked(evt);
-            }
-        });
+        panelHeaderPads.setRoundTopLeft(25);
+        panelHeaderPads.setRoundTopRight(25);
 
         labelTitulo_PADS.setBackground(new java.awt.Color(210, 210, 210));
         labelTitulo_PADS.setFont(new java.awt.Font("Roboto", 1, 24)); // NOI18N
@@ -337,31 +780,26 @@ public class PrincipalSampler extends javax.swing.JFrame {
         panelHeaderPads.setLayout(panelHeaderPadsLayout);
         panelHeaderPadsLayout.setHorizontalGroup(
             panelHeaderPadsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelHeaderPadsLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(labelAjustesIcon, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
-            .addGroup(panelHeaderPadsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(panelHeaderPadsLayout.createSequentialGroup()
-                    .addGap(24, 24, 24)
-                    .addComponent(labelTitulo_PADS, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap(323, Short.MAX_VALUE)))
+            .addGroup(panelHeaderPadsLayout.createSequentialGroup()
+                .addGap(24, 24, 24)
+                .addComponent(labelTitulo_PADS, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         panelHeaderPadsLayout.setVerticalGroup(
             panelHeaderPadsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(labelAjustesIcon, javax.swing.GroupLayout.DEFAULT_SIZE, 62, Short.MAX_VALUE)
-            .addGroup(panelHeaderPadsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(panelHeaderPadsLayout.createSequentialGroup()
-                    .addContainerGap()
-                    .addComponent(labelTitulo_PADS, javax.swing.GroupLayout.DEFAULT_SIZE, 38, Short.MAX_VALUE)
-                    .addContainerGap()))
+            .addGroup(panelHeaderPadsLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(labelTitulo_PADS, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
+        jSeparator1.setForeground(new java.awt.Color(204, 204, 204));
+
         labelPerfil_Seleccionado.setBackground(new java.awt.Color(107, 107, 107));
-        labelPerfil_Seleccionado.setFont(new java.awt.Font("Roboto Medium", 0, 10)); // NOI18N
+        labelPerfil_Seleccionado.setFont(new java.awt.Font("Roboto Medium", 2, 10)); // NOI18N
         labelPerfil_Seleccionado.setForeground(new java.awt.Color(107, 107, 107));
         labelPerfil_Seleccionado.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        labelPerfil_Seleccionado.setText("© 2024 José Serpa - Jairo Gamarra");
+        labelPerfil_Seleccionado.setText("© 2024 José Serpa  -  Jairo Gamarra");
 
         padSound1.setBackground(new java.awt.Color(119, 55, 149));
         padSound1.setRoundBottomLeft(30);
@@ -370,11 +808,6 @@ public class PrincipalSampler extends javax.swing.JFrame {
         padSound1.setRoundTopRight(30);
 
         labelPadSound1.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        labelPadSound1.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                labelPadSound1MouseClicked(evt);
-            }
-        });
 
         javax.swing.GroupLayout padSound1Layout = new javax.swing.GroupLayout(padSound1);
         padSound1.setLayout(padSound1Layout);
@@ -387,7 +820,7 @@ public class PrincipalSampler extends javax.swing.JFrame {
             .addComponent(labelPadSound1, javax.swing.GroupLayout.DEFAULT_SIZE, 99, Short.MAX_VALUE)
         );
 
-        padSound2.setBackground(new java.awt.Color(235, 30, 50));
+        padSound2.setBackground(new java.awt.Color(119, 55, 149));
         padSound2.setRoundBottomLeft(30);
         padSound2.setRoundBottomRight(30);
         padSound2.setRoundTopLeft(30);
@@ -399,14 +832,18 @@ public class PrincipalSampler extends javax.swing.JFrame {
         padSound2.setLayout(padSound2Layout);
         padSound2Layout.setHorizontalGroup(
             padSound2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(labelPadSound2, javax.swing.GroupLayout.DEFAULT_SIZE, 106, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, padSound2Layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(labelPadSound2, javax.swing.GroupLayout.PREFERRED_SIZE, 106, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         padSound2Layout.setVerticalGroup(
             padSound2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(labelPadSound2, javax.swing.GroupLayout.DEFAULT_SIZE, 99, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, padSound2Layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(labelPadSound2, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
-        padSound3.setBackground(new java.awt.Color(30, 215, 96));
+        padSound3.setBackground(new java.awt.Color(235, 30, 50));
         padSound3.setRoundBottomLeft(30);
         padSound3.setRoundBottomRight(30);
         padSound3.setRoundTopLeft(30);
@@ -418,14 +855,18 @@ public class PrincipalSampler extends javax.swing.JFrame {
         padSound3.setLayout(padSound3Layout);
         padSound3Layout.setHorizontalGroup(
             padSound3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(labelPadSound3, javax.swing.GroupLayout.DEFAULT_SIZE, 106, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, padSound3Layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(labelPadSound3, javax.swing.GroupLayout.PREFERRED_SIZE, 106, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         padSound3Layout.setVerticalGroup(
             padSound3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(labelPadSound3, javax.swing.GroupLayout.DEFAULT_SIZE, 99, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, padSound3Layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(labelPadSound3, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
-        padSound4.setBackground(new java.awt.Color(119, 55, 149));
+        padSound4.setBackground(new java.awt.Color(235, 30, 50));
         padSound4.setRoundBottomLeft(30);
         padSound4.setRoundBottomRight(30);
         padSound4.setRoundTopLeft(30);
@@ -437,48 +878,56 @@ public class PrincipalSampler extends javax.swing.JFrame {
         padSound4.setLayout(padSound4Layout);
         padSound4Layout.setHorizontalGroup(
             padSound4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(labelPadSound4, javax.swing.GroupLayout.DEFAULT_SIZE, 106, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, padSound4Layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(labelPadSound4, javax.swing.GroupLayout.PREFERRED_SIZE, 106, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         padSound4Layout.setVerticalGroup(
             padSound4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(labelPadSound4, javax.swing.GroupLayout.DEFAULT_SIZE, 99, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, padSound4Layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(labelPadSound4, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
-        padSound11.setBackground(new java.awt.Color(235, 30, 50));
-        padSound11.setRoundBottomLeft(30);
-        padSound11.setRoundBottomRight(30);
-        padSound11.setRoundTopLeft(30);
-        padSound11.setRoundTopRight(30);
+        padSound5.setBackground(new java.awt.Color(30, 215, 96));
+        padSound5.setRoundBottomLeft(30);
+        padSound5.setRoundBottomRight(30);
+        padSound5.setRoundTopLeft(30);
+        padSound5.setRoundTopRight(30);
 
         labelPadSound5.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
 
-        javax.swing.GroupLayout padSound11Layout = new javax.swing.GroupLayout(padSound11);
-        padSound11.setLayout(padSound11Layout);
-        padSound11Layout.setHorizontalGroup(
-            padSound11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(labelPadSound5, javax.swing.GroupLayout.DEFAULT_SIZE, 106, Short.MAX_VALUE)
+        javax.swing.GroupLayout padSound5Layout = new javax.swing.GroupLayout(padSound5);
+        padSound5.setLayout(padSound5Layout);
+        padSound5Layout.setHorizontalGroup(
+            padSound5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, padSound5Layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(labelPadSound5, javax.swing.GroupLayout.PREFERRED_SIZE, 106, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
-        padSound11Layout.setVerticalGroup(
-            padSound11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(labelPadSound5, javax.swing.GroupLayout.DEFAULT_SIZE, 99, Short.MAX_VALUE)
+        padSound5Layout.setVerticalGroup(
+            padSound5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, padSound5Layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(labelPadSound5, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
-        padSound14.setBackground(new java.awt.Color(30, 215, 96));
-        padSound14.setRoundBottomLeft(30);
-        padSound14.setRoundBottomRight(30);
-        padSound14.setRoundTopLeft(30);
-        padSound14.setRoundTopRight(30);
+        padSound6.setBackground(new java.awt.Color(30, 215, 96));
+        padSound6.setRoundBottomLeft(30);
+        padSound6.setRoundBottomRight(30);
+        padSound6.setRoundTopLeft(30);
+        padSound6.setRoundTopRight(30);
 
         labelPadSound6.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
 
-        javax.swing.GroupLayout padSound14Layout = new javax.swing.GroupLayout(padSound14);
-        padSound14.setLayout(padSound14Layout);
-        padSound14Layout.setHorizontalGroup(
-            padSound14Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        javax.swing.GroupLayout padSound6Layout = new javax.swing.GroupLayout(padSound6);
+        padSound6.setLayout(padSound6Layout);
+        padSound6Layout.setHorizontalGroup(
+            padSound6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(labelPadSound6, javax.swing.GroupLayout.DEFAULT_SIZE, 106, Short.MAX_VALUE)
         );
-        padSound14Layout.setVerticalGroup(
-            padSound14Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        padSound6Layout.setVerticalGroup(
+            padSound6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(labelPadSound6, javax.swing.GroupLayout.DEFAULT_SIZE, 99, Short.MAX_VALUE)
         );
 
@@ -532,62 +981,57 @@ public class PrincipalSampler extends javax.swing.JFrame {
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelPrincipal_DosLayout.createSequentialGroup()
-                .addContainerGap(29, Short.MAX_VALUE)
+                .addGap(22, 22, 22)
                 .addGroup(panelPrincipal_DosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(panelPrincipal_DosLayout.createSequentialGroup()
-                        .addComponent(padSound4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(padSound11, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(padSound14, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(panelPrincipal_DosLayout.createSequentialGroup()
                         .addComponent(padSound1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
-                        .addComponent(padSound2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(padSound3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
-                        .addComponent(padSound3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(padSound5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelPrincipal_DosLayout.createSequentialGroup()
+                        .addGroup(panelPrincipal_DosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(panelPrincipal_DosLayout.createSequentialGroup()
+                                .addComponent(padSound2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addComponent(label_NumeroDelPAD_2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(label_NumeroDelPAD_1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(18, 18, 18)
+                        .addGroup(panelPrincipal_DosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(label_NumeroDelPAD_3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(label_NumeroDelPAD_4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(padSound4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(18, 18, 18)
+                        .addGroup(panelPrincipal_DosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(padSound6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(label_NumeroDelPAD_5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(label_NumeroDelPAD_6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addGap(34, 34, 34))
-            .addGroup(panelPrincipal_DosLayout.createSequentialGroup()
-                .addGap(61, 61, 61)
-                .addComponent(label_NumeroDelPAD_1)
-                .addGap(88, 88, 88)
-                .addComponent(label_NumeroDelPAD_2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(label_NumeroDelPAD_3)
-                .addGap(63, 63, 63))
-            .addGroup(panelPrincipal_DosLayout.createSequentialGroup()
-                .addGap(63, 63, 63)
-                .addComponent(label_NumeroDelPAD_4)
-                .addGap(87, 87, 87)
-                .addComponent(label_NumeroDelPAD_5)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(label_NumeroDelPAD_6)
-                .addGap(66, 66, 66))
         );
         panelPrincipal_DosLayout.setVerticalGroup(
             panelPrincipal_DosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelPrincipal_DosLayout.createSequentialGroup()
                 .addComponent(panelHeaderPads, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(33, 33, 33)
+                .addGap(54, 54, 54)
                 .addGroup(panelPrincipal_DosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(padSound1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(padSound2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(padSound3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(padSound3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(padSound5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(panelPrincipal_DosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(label_NumeroDelPAD_1)
-                    .addComponent(label_NumeroDelPAD_2)
-                    .addComponent(label_NumeroDelPAD_3))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 24, Short.MAX_VALUE)
+                    .addComponent(label_NumeroDelPAD_3)
+                    .addComponent(label_NumeroDelPAD_5))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(panelPrincipal_DosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(padSound4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(padSound11, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(padSound14, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(padSound6, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(padSound2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(padSound4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(panelPrincipal_DosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(label_NumeroDelPAD_5)
+                    .addComponent(label_NumeroDelPAD_4)
                     .addComponent(label_NumeroDelPAD_6)
-                    .addComponent(label_NumeroDelPAD_4))
+                    .addComponent(label_NumeroDelPAD_2))
                 .addGap(16, 16, 16)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -595,63 +1039,1104 @@ public class PrincipalSampler extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
-        bg.add(panelPrincipal_Dos, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 20, 417, 412));
+        bg.add(panelPrincipal_Dos, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 50, 410, 412));
 
-        panelRelleno.setBackground(new java.awt.Color(0, 0, 0));
+        panelPrincipal_Tres.setBackground(new java.awt.Color(18, 18, 18));
 
-        javax.swing.GroupLayout panelRellenoLayout = new javax.swing.GroupLayout(panelRelleno);
-        panelRelleno.setLayout(panelRellenoLayout);
-        panelRellenoLayout.setHorizontalGroup(
-            panelRellenoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 660, Short.MAX_VALUE)
+        panelHeaderPads1.setBackground(new java.awt.Color(20, 20, 20));
+        panelHeaderPads1.setRoundBottomLeft(10);
+        panelHeaderPads1.setRoundBottomRight(10);
+        panelHeaderPads1.setRoundTopLeft(10);
+        panelHeaderPads1.setRoundTopRight(10);
+
+        labelTitulo_PADS1.setBackground(new java.awt.Color(210, 210, 210));
+        labelTitulo_PADS1.setFont(new java.awt.Font("Roboto", 1, 18)); // NOI18N
+        labelTitulo_PADS1.setForeground(new java.awt.Color(210, 210, 210));
+        labelTitulo_PADS1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        labelTitulo_PADS1.setText("Configuración de Pads");
+
+        javax.swing.GroupLayout panelHeaderPads1Layout = new javax.swing.GroupLayout(panelHeaderPads1);
+        panelHeaderPads1.setLayout(panelHeaderPads1Layout);
+        panelHeaderPads1Layout.setHorizontalGroup(
+            panelHeaderPads1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelHeaderPads1Layout.createSequentialGroup()
+                .addComponent(labelTitulo_PADS1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
-        panelRellenoLayout.setVerticalGroup(
-            panelRellenoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 20, Short.MAX_VALUE)
+        panelHeaderPads1Layout.setVerticalGroup(
+            panelHeaderPads1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelHeaderPads1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(labelTitulo_PADS1, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        bg.add(panelRelleno, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 430, 660, 20));
+        botonSelecccionarSonido_Pad1.setBackground(new java.awt.Color(119, 55, 149));
+        botonSelecccionarSonido_Pad1.setRoundBottomLeft(25);
+        botonSelecccionarSonido_Pad1.setRoundBottomRight(25);
+        botonSelecccionarSonido_Pad1.setRoundTopLeft(25);
+        botonSelecccionarSonido_Pad1.setRoundTopRight(25);
+
+        label_SeleccionarSonido1.setBackground(new java.awt.Color(210, 210, 210));
+        label_SeleccionarSonido1.setFont(new java.awt.Font("Roboto Black", 1, 14)); // NOI18N
+        label_SeleccionarSonido1.setForeground(new java.awt.Color(255, 255, 255));
+        label_SeleccionarSonido1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_SeleccionarSonido1.setText("+");
+        label_SeleccionarSonido1.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        javax.swing.GroupLayout botonSelecccionarSonido_Pad1Layout = new javax.swing.GroupLayout(botonSelecccionarSonido_Pad1);
+        botonSelecccionarSonido_Pad1.setLayout(botonSelecccionarSonido_Pad1Layout);
+        botonSelecccionarSonido_Pad1Layout.setHorizontalGroup(
+            botonSelecccionarSonido_Pad1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 33, Short.MAX_VALUE)
+            .addGroup(botonSelecccionarSonido_Pad1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(botonSelecccionarSonido_Pad1Layout.createSequentialGroup()
+                    .addComponent(label_SeleccionarSonido1, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGap(0, 0, Short.MAX_VALUE)))
+        );
+        botonSelecccionarSonido_Pad1Layout.setVerticalGroup(
+            botonSelecccionarSonido_Pad1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 28, Short.MAX_VALUE)
+            .addGroup(botonSelecccionarSonido_Pad1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_SeleccionarSonido1, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE))
+        );
+
+        botonSelecccionarSonido_Pad2.setBackground(new java.awt.Color(119, 55, 149));
+        botonSelecccionarSonido_Pad2.setRoundBottomLeft(25);
+        botonSelecccionarSonido_Pad2.setRoundBottomRight(25);
+        botonSelecccionarSonido_Pad2.setRoundTopLeft(25);
+        botonSelecccionarSonido_Pad2.setRoundTopRight(25);
+
+        label_SeleccionarSonido2.setBackground(new java.awt.Color(210, 210, 210));
+        label_SeleccionarSonido2.setFont(new java.awt.Font("Roboto Black", 1, 14)); // NOI18N
+        label_SeleccionarSonido2.setForeground(new java.awt.Color(255, 255, 255));
+        label_SeleccionarSonido2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_SeleccionarSonido2.setText("+");
+        label_SeleccionarSonido2.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        javax.swing.GroupLayout botonSelecccionarSonido_Pad2Layout = new javax.swing.GroupLayout(botonSelecccionarSonido_Pad2);
+        botonSelecccionarSonido_Pad2.setLayout(botonSelecccionarSonido_Pad2Layout);
+        botonSelecccionarSonido_Pad2Layout.setHorizontalGroup(
+            botonSelecccionarSonido_Pad2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 33, Short.MAX_VALUE)
+            .addGroup(botonSelecccionarSonido_Pad2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(botonSelecccionarSonido_Pad2Layout.createSequentialGroup()
+                    .addComponent(label_SeleccionarSonido2, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGap(0, 0, Short.MAX_VALUE)))
+        );
+        botonSelecccionarSonido_Pad2Layout.setVerticalGroup(
+            botonSelecccionarSonido_Pad2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 28, Short.MAX_VALUE)
+            .addGroup(botonSelecccionarSonido_Pad2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_SeleccionarSonido2, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE))
+        );
+
+        botonSelecccionarSonido_Pad3.setBackground(new java.awt.Color(235, 30, 50));
+        botonSelecccionarSonido_Pad3.setRoundBottomLeft(25);
+        botonSelecccionarSonido_Pad3.setRoundBottomRight(25);
+        botonSelecccionarSonido_Pad3.setRoundTopLeft(25);
+        botonSelecccionarSonido_Pad3.setRoundTopRight(25);
+
+        label_SeleccionarSonido3.setBackground(new java.awt.Color(210, 210, 210));
+        label_SeleccionarSonido3.setFont(new java.awt.Font("Roboto Black", 1, 14)); // NOI18N
+        label_SeleccionarSonido3.setForeground(new java.awt.Color(255, 255, 255));
+        label_SeleccionarSonido3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_SeleccionarSonido3.setText("+");
+        label_SeleccionarSonido3.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        javax.swing.GroupLayout botonSelecccionarSonido_Pad3Layout = new javax.swing.GroupLayout(botonSelecccionarSonido_Pad3);
+        botonSelecccionarSonido_Pad3.setLayout(botonSelecccionarSonido_Pad3Layout);
+        botonSelecccionarSonido_Pad3Layout.setHorizontalGroup(
+            botonSelecccionarSonido_Pad3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 33, Short.MAX_VALUE)
+            .addGroup(botonSelecccionarSonido_Pad3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(botonSelecccionarSonido_Pad3Layout.createSequentialGroup()
+                    .addComponent(label_SeleccionarSonido3, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGap(0, 0, Short.MAX_VALUE)))
+        );
+        botonSelecccionarSonido_Pad3Layout.setVerticalGroup(
+            botonSelecccionarSonido_Pad3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 28, Short.MAX_VALUE)
+            .addGroup(botonSelecccionarSonido_Pad3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_SeleccionarSonido3, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE))
+        );
+
+        label_AjustePAD_1.setBackground(new java.awt.Color(210, 210, 210));
+        label_AjustePAD_1.setFont(new java.awt.Font("Roboto Medium", 0, 18)); // NOI18N
+        label_AjustePAD_1.setForeground(new java.awt.Color(230, 230, 230));
+        label_AjustePAD_1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_AjustePAD_1.setText("PAD 1");
+
+        label_AjustePAD_2.setBackground(new java.awt.Color(210, 210, 210));
+        label_AjustePAD_2.setFont(new java.awt.Font("Roboto Medium", 0, 18)); // NOI18N
+        label_AjustePAD_2.setForeground(new java.awt.Color(230, 230, 230));
+        label_AjustePAD_2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_AjustePAD_2.setText("PAD 2");
+
+        label_AjustePAD_3.setBackground(new java.awt.Color(210, 210, 210));
+        label_AjustePAD_3.setFont(new java.awt.Font("Roboto Medium", 0, 18)); // NOI18N
+        label_AjustePAD_3.setForeground(new java.awt.Color(230, 230, 230));
+        label_AjustePAD_3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_AjustePAD_3.setText("PAD 3");
+
+        label_AjustePAD_4.setBackground(new java.awt.Color(210, 210, 210));
+        label_AjustePAD_4.setFont(new java.awt.Font("Roboto Medium", 0, 18)); // NOI18N
+        label_AjustePAD_4.setForeground(new java.awt.Color(230, 230, 230));
+        label_AjustePAD_4.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_AjustePAD_4.setText("PAD 4");
+
+        label_AjustePAD_5.setBackground(new java.awt.Color(210, 210, 210));
+        label_AjustePAD_5.setFont(new java.awt.Font("Roboto Medium", 0, 18)); // NOI18N
+        label_AjustePAD_5.setForeground(new java.awt.Color(230, 230, 230));
+        label_AjustePAD_5.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_AjustePAD_5.setText("PAD 5");
+
+        label_AjustePAD_6.setBackground(new java.awt.Color(210, 210, 210));
+        label_AjustePAD_6.setFont(new java.awt.Font("Roboto Medium", 0, 18)); // NOI18N
+        label_AjustePAD_6.setForeground(new java.awt.Color(230, 230, 230));
+        label_AjustePAD_6.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_AjustePAD_6.setText("PAD 6");
+
+        botonSelecccionarSonido_Pad4.setBackground(new java.awt.Color(235, 30, 50));
+        botonSelecccionarSonido_Pad4.setRoundBottomLeft(25);
+        botonSelecccionarSonido_Pad4.setRoundBottomRight(25);
+        botonSelecccionarSonido_Pad4.setRoundTopLeft(25);
+        botonSelecccionarSonido_Pad4.setRoundTopRight(25);
+
+        label_SeleccionarSonido4.setBackground(new java.awt.Color(210, 210, 210));
+        label_SeleccionarSonido4.setFont(new java.awt.Font("Roboto Black", 1, 14)); // NOI18N
+        label_SeleccionarSonido4.setForeground(new java.awt.Color(255, 255, 255));
+        label_SeleccionarSonido4.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_SeleccionarSonido4.setText("+");
+        label_SeleccionarSonido4.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        javax.swing.GroupLayout botonSelecccionarSonido_Pad4Layout = new javax.swing.GroupLayout(botonSelecccionarSonido_Pad4);
+        botonSelecccionarSonido_Pad4.setLayout(botonSelecccionarSonido_Pad4Layout);
+        botonSelecccionarSonido_Pad4Layout.setHorizontalGroup(
+            botonSelecccionarSonido_Pad4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 33, Short.MAX_VALUE)
+            .addGroup(botonSelecccionarSonido_Pad4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(botonSelecccionarSonido_Pad4Layout.createSequentialGroup()
+                    .addComponent(label_SeleccionarSonido4, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGap(0, 0, Short.MAX_VALUE)))
+        );
+        botonSelecccionarSonido_Pad4Layout.setVerticalGroup(
+            botonSelecccionarSonido_Pad4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 28, Short.MAX_VALUE)
+            .addGroup(botonSelecccionarSonido_Pad4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_SeleccionarSonido4, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE))
+        );
+
+        botonSelecccionarSonido_Pad5.setBackground(new java.awt.Color(30, 215, 96));
+        botonSelecccionarSonido_Pad5.setRoundBottomLeft(25);
+        botonSelecccionarSonido_Pad5.setRoundBottomRight(25);
+        botonSelecccionarSonido_Pad5.setRoundTopLeft(25);
+        botonSelecccionarSonido_Pad5.setRoundTopRight(25);
+
+        label_SeleccionarSonido5.setBackground(new java.awt.Color(210, 210, 210));
+        label_SeleccionarSonido5.setFont(new java.awt.Font("Roboto Black", 1, 14)); // NOI18N
+        label_SeleccionarSonido5.setForeground(new java.awt.Color(255, 255, 255));
+        label_SeleccionarSonido5.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_SeleccionarSonido5.setText("+");
+        label_SeleccionarSonido5.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        javax.swing.GroupLayout botonSelecccionarSonido_Pad5Layout = new javax.swing.GroupLayout(botonSelecccionarSonido_Pad5);
+        botonSelecccionarSonido_Pad5.setLayout(botonSelecccionarSonido_Pad5Layout);
+        botonSelecccionarSonido_Pad5Layout.setHorizontalGroup(
+            botonSelecccionarSonido_Pad5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 33, Short.MAX_VALUE)
+            .addGroup(botonSelecccionarSonido_Pad5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(botonSelecccionarSonido_Pad5Layout.createSequentialGroup()
+                    .addComponent(label_SeleccionarSonido5, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGap(0, 0, Short.MAX_VALUE)))
+        );
+        botonSelecccionarSonido_Pad5Layout.setVerticalGroup(
+            botonSelecccionarSonido_Pad5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 28, Short.MAX_VALUE)
+            .addGroup(botonSelecccionarSonido_Pad5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_SeleccionarSonido5, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE))
+        );
+
+        botonSelecccionarSonido_Pad6.setBackground(new java.awt.Color(30, 215, 96));
+        botonSelecccionarSonido_Pad6.setRoundBottomLeft(25);
+        botonSelecccionarSonido_Pad6.setRoundBottomRight(25);
+        botonSelecccionarSonido_Pad6.setRoundTopLeft(25);
+        botonSelecccionarSonido_Pad6.setRoundTopRight(25);
+
+        label_SeleccionarSonido6.setBackground(new java.awt.Color(210, 210, 210));
+        label_SeleccionarSonido6.setFont(new java.awt.Font("Roboto Black", 1, 14)); // NOI18N
+        label_SeleccionarSonido6.setForeground(new java.awt.Color(255, 255, 255));
+        label_SeleccionarSonido6.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_SeleccionarSonido6.setText("+");
+        label_SeleccionarSonido6.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        javax.swing.GroupLayout botonSelecccionarSonido_Pad6Layout = new javax.swing.GroupLayout(botonSelecccionarSonido_Pad6);
+        botonSelecccionarSonido_Pad6.setLayout(botonSelecccionarSonido_Pad6Layout);
+        botonSelecccionarSonido_Pad6Layout.setHorizontalGroup(
+            botonSelecccionarSonido_Pad6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 33, Short.MAX_VALUE)
+            .addGroup(botonSelecccionarSonido_Pad6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(botonSelecccionarSonido_Pad6Layout.createSequentialGroup()
+                    .addComponent(label_SeleccionarSonido6, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGap(0, 0, Short.MAX_VALUE)))
+        );
+        botonSelecccionarSonido_Pad6Layout.setVerticalGroup(
+            botonSelecccionarSonido_Pad6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 28, Short.MAX_VALUE)
+            .addGroup(botonSelecccionarSonido_Pad6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_SeleccionarSonido6, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE))
+        );
+
+        ControlVolumen1.setForeground(new java.awt.Color(255, 255, 255));
+        ControlVolumen1.setOrientation(javax.swing.JSlider.VERTICAL);
+
+        ControlVolumen2.setForeground(new java.awt.Color(255, 255, 255));
+        ControlVolumen2.setOrientation(javax.swing.JSlider.VERTICAL);
+
+        ControlVolumen3.setForeground(new java.awt.Color(255, 255, 255));
+        ControlVolumen3.setOrientation(javax.swing.JSlider.VERTICAL);
+
+        ControlVolumen4.setForeground(new java.awt.Color(255, 255, 255));
+        ControlVolumen4.setOrientation(javax.swing.JSlider.VERTICAL);
+
+        ControlVolumen5.setForeground(new java.awt.Color(255, 255, 255));
+        ControlVolumen5.setOrientation(javax.swing.JSlider.VERTICAL);
+
+        ControlVolumen6.setForeground(new java.awt.Color(255, 255, 255));
+        ControlVolumen6.setOrientation(javax.swing.JSlider.VERTICAL);
+
+        botonConsultarSonido_Pad1.setBackground(new java.awt.Color(119, 55, 149));
+        botonConsultarSonido_Pad1.setRoundBottomLeft(25);
+        botonConsultarSonido_Pad1.setRoundBottomRight(25);
+        botonConsultarSonido_Pad1.setRoundTopLeft(25);
+        botonConsultarSonido_Pad1.setRoundTopRight(25);
+
+        label_ConsultarSonido1.setBackground(new java.awt.Color(210, 210, 210));
+        label_ConsultarSonido1.setFont(new java.awt.Font("Roboto Black", 1, 14)); // NOI18N
+        label_ConsultarSonido1.setForeground(new java.awt.Color(255, 255, 255));
+        label_ConsultarSonido1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_ConsultarSonido1.setText("i");
+        label_ConsultarSonido1.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        javax.swing.GroupLayout botonConsultarSonido_Pad1Layout = new javax.swing.GroupLayout(botonConsultarSonido_Pad1);
+        botonConsultarSonido_Pad1.setLayout(botonConsultarSonido_Pad1Layout);
+        botonConsultarSonido_Pad1Layout.setHorizontalGroup(
+            botonConsultarSonido_Pad1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 33, Short.MAX_VALUE)
+            .addGroup(botonConsultarSonido_Pad1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_ConsultarSonido1, javax.swing.GroupLayout.DEFAULT_SIZE, 33, Short.MAX_VALUE))
+        );
+        botonConsultarSonido_Pad1Layout.setVerticalGroup(
+            botonConsultarSonido_Pad1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 28, Short.MAX_VALUE)
+            .addGroup(botonConsultarSonido_Pad1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_ConsultarSonido1, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE))
+        );
+
+        botonConsultarSonido_Pad2.setBackground(new java.awt.Color(119, 55, 149));
+        botonConsultarSonido_Pad2.setRoundBottomLeft(25);
+        botonConsultarSonido_Pad2.setRoundBottomRight(25);
+        botonConsultarSonido_Pad2.setRoundTopLeft(25);
+        botonConsultarSonido_Pad2.setRoundTopRight(25);
+
+        label_ConsultarSonido2.setBackground(new java.awt.Color(210, 210, 210));
+        label_ConsultarSonido2.setFont(new java.awt.Font("Roboto Black", 1, 14)); // NOI18N
+        label_ConsultarSonido2.setForeground(new java.awt.Color(255, 255, 255));
+        label_ConsultarSonido2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_ConsultarSonido2.setText("i");
+        label_ConsultarSonido2.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        javax.swing.GroupLayout botonConsultarSonido_Pad2Layout = new javax.swing.GroupLayout(botonConsultarSonido_Pad2);
+        botonConsultarSonido_Pad2.setLayout(botonConsultarSonido_Pad2Layout);
+        botonConsultarSonido_Pad2Layout.setHorizontalGroup(
+            botonConsultarSonido_Pad2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 33, Short.MAX_VALUE)
+            .addGroup(botonConsultarSonido_Pad2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_ConsultarSonido2, javax.swing.GroupLayout.DEFAULT_SIZE, 33, Short.MAX_VALUE))
+        );
+        botonConsultarSonido_Pad2Layout.setVerticalGroup(
+            botonConsultarSonido_Pad2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 28, Short.MAX_VALUE)
+            .addGroup(botonConsultarSonido_Pad2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_ConsultarSonido2, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE))
+        );
+
+        botonConsultarSonido_Pad3.setBackground(new java.awt.Color(235, 30, 50));
+        botonConsultarSonido_Pad3.setRoundBottomLeft(25);
+        botonConsultarSonido_Pad3.setRoundBottomRight(25);
+        botonConsultarSonido_Pad3.setRoundTopLeft(25);
+        botonConsultarSonido_Pad3.setRoundTopRight(25);
+
+        label_ConsultarSonido3.setBackground(new java.awt.Color(210, 210, 210));
+        label_ConsultarSonido3.setFont(new java.awt.Font("Roboto Black", 1, 14)); // NOI18N
+        label_ConsultarSonido3.setForeground(new java.awt.Color(255, 255, 255));
+        label_ConsultarSonido3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_ConsultarSonido3.setText("i");
+        label_ConsultarSonido3.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        javax.swing.GroupLayout botonConsultarSonido_Pad3Layout = new javax.swing.GroupLayout(botonConsultarSonido_Pad3);
+        botonConsultarSonido_Pad3.setLayout(botonConsultarSonido_Pad3Layout);
+        botonConsultarSonido_Pad3Layout.setHorizontalGroup(
+            botonConsultarSonido_Pad3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 33, Short.MAX_VALUE)
+            .addGroup(botonConsultarSonido_Pad3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_ConsultarSonido3, javax.swing.GroupLayout.DEFAULT_SIZE, 33, Short.MAX_VALUE))
+        );
+        botonConsultarSonido_Pad3Layout.setVerticalGroup(
+            botonConsultarSonido_Pad3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 28, Short.MAX_VALUE)
+            .addGroup(botonConsultarSonido_Pad3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_ConsultarSonido3, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE))
+        );
+
+        botonConsultarSonido_Pad44.setBackground(new java.awt.Color(235, 30, 50));
+        botonConsultarSonido_Pad44.setRoundBottomLeft(25);
+        botonConsultarSonido_Pad44.setRoundBottomRight(25);
+        botonConsultarSonido_Pad44.setRoundTopLeft(25);
+        botonConsultarSonido_Pad44.setRoundTopRight(25);
+
+        label_ConsultarSonido4.setBackground(new java.awt.Color(210, 210, 210));
+        label_ConsultarSonido4.setFont(new java.awt.Font("Roboto Black", 1, 14)); // NOI18N
+        label_ConsultarSonido4.setForeground(new java.awt.Color(255, 255, 255));
+        label_ConsultarSonido4.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_ConsultarSonido4.setText("i");
+        label_ConsultarSonido4.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        javax.swing.GroupLayout botonConsultarSonido_Pad44Layout = new javax.swing.GroupLayout(botonConsultarSonido_Pad44);
+        botonConsultarSonido_Pad44.setLayout(botonConsultarSonido_Pad44Layout);
+        botonConsultarSonido_Pad44Layout.setHorizontalGroup(
+            botonConsultarSonido_Pad44Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 33, Short.MAX_VALUE)
+            .addGroup(botonConsultarSonido_Pad44Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_ConsultarSonido4, javax.swing.GroupLayout.DEFAULT_SIZE, 33, Short.MAX_VALUE))
+        );
+        botonConsultarSonido_Pad44Layout.setVerticalGroup(
+            botonConsultarSonido_Pad44Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 28, Short.MAX_VALUE)
+            .addGroup(botonConsultarSonido_Pad44Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_ConsultarSonido4, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE))
+        );
+
+        botonConsultarSonido_Pad5.setBackground(new java.awt.Color(30, 215, 96));
+        botonConsultarSonido_Pad5.setRoundBottomLeft(25);
+        botonConsultarSonido_Pad5.setRoundBottomRight(25);
+        botonConsultarSonido_Pad5.setRoundTopLeft(25);
+        botonConsultarSonido_Pad5.setRoundTopRight(25);
+
+        label_ConsultarSonido5.setBackground(new java.awt.Color(210, 210, 210));
+        label_ConsultarSonido5.setFont(new java.awt.Font("Roboto Black", 1, 14)); // NOI18N
+        label_ConsultarSonido5.setForeground(new java.awt.Color(255, 255, 255));
+        label_ConsultarSonido5.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_ConsultarSonido5.setText("i");
+        label_ConsultarSonido5.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        javax.swing.GroupLayout botonConsultarSonido_Pad5Layout = new javax.swing.GroupLayout(botonConsultarSonido_Pad5);
+        botonConsultarSonido_Pad5.setLayout(botonConsultarSonido_Pad5Layout);
+        botonConsultarSonido_Pad5Layout.setHorizontalGroup(
+            botonConsultarSonido_Pad5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 33, Short.MAX_VALUE)
+            .addGroup(botonConsultarSonido_Pad5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_ConsultarSonido5, javax.swing.GroupLayout.DEFAULT_SIZE, 33, Short.MAX_VALUE))
+        );
+        botonConsultarSonido_Pad5Layout.setVerticalGroup(
+            botonConsultarSonido_Pad5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 28, Short.MAX_VALUE)
+            .addGroup(botonConsultarSonido_Pad5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_ConsultarSonido5, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE))
+        );
+
+        botonConsultarSonido_Pad6.setBackground(new java.awt.Color(30, 215, 96));
+        botonConsultarSonido_Pad6.setRoundBottomLeft(25);
+        botonConsultarSonido_Pad6.setRoundBottomRight(25);
+        botonConsultarSonido_Pad6.setRoundTopLeft(25);
+        botonConsultarSonido_Pad6.setRoundTopRight(25);
+
+        label_ConsultarSonido6.setBackground(new java.awt.Color(210, 210, 210));
+        label_ConsultarSonido6.setFont(new java.awt.Font("Roboto Black", 1, 14)); // NOI18N
+        label_ConsultarSonido6.setForeground(new java.awt.Color(255, 255, 255));
+        label_ConsultarSonido6.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_ConsultarSonido6.setText("i");
+        label_ConsultarSonido6.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        javax.swing.GroupLayout botonConsultarSonido_Pad6Layout = new javax.swing.GroupLayout(botonConsultarSonido_Pad6);
+        botonConsultarSonido_Pad6.setLayout(botonConsultarSonido_Pad6Layout);
+        botonConsultarSonido_Pad6Layout.setHorizontalGroup(
+            botonConsultarSonido_Pad6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 33, Short.MAX_VALUE)
+            .addGroup(botonConsultarSonido_Pad6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_ConsultarSonido6, javax.swing.GroupLayout.DEFAULT_SIZE, 33, Short.MAX_VALUE))
+        );
+        botonConsultarSonido_Pad6Layout.setVerticalGroup(
+            botonConsultarSonido_Pad6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 28, Short.MAX_VALUE)
+            .addGroup(botonConsultarSonido_Pad6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_ConsultarSonido6, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE))
+        );
+
+        botonEliminarSonido_Pad1.setBackground(new java.awt.Color(119, 55, 149));
+        botonEliminarSonido_Pad1.setRoundBottomLeft(25);
+        botonEliminarSonido_Pad1.setRoundBottomRight(25);
+        botonEliminarSonido_Pad1.setRoundTopLeft(25);
+        botonEliminarSonido_Pad1.setRoundTopRight(25);
+
+        label_EliminarSonido1.setBackground(new java.awt.Color(210, 210, 210));
+        label_EliminarSonido1.setFont(new java.awt.Font("Roboto Black", 1, 14)); // NOI18N
+        label_EliminarSonido1.setForeground(new java.awt.Color(255, 255, 255));
+        label_EliminarSonido1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_EliminarSonido1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/image-removebg-preview 1.png"))); // NOI18N
+        label_EliminarSonido1.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        javax.swing.GroupLayout botonEliminarSonido_Pad1Layout = new javax.swing.GroupLayout(botonEliminarSonido_Pad1);
+        botonEliminarSonido_Pad1.setLayout(botonEliminarSonido_Pad1Layout);
+        botonEliminarSonido_Pad1Layout.setHorizontalGroup(
+            botonEliminarSonido_Pad1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 33, Short.MAX_VALUE)
+            .addGroup(botonEliminarSonido_Pad1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_EliminarSonido1, javax.swing.GroupLayout.DEFAULT_SIZE, 33, Short.MAX_VALUE))
+        );
+        botonEliminarSonido_Pad1Layout.setVerticalGroup(
+            botonEliminarSonido_Pad1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 28, Short.MAX_VALUE)
+            .addGroup(botonEliminarSonido_Pad1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_EliminarSonido1, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE))
+        );
+
+        botonEliminarSonido_Pad2.setBackground(new java.awt.Color(119, 55, 149));
+        botonEliminarSonido_Pad2.setRoundBottomLeft(25);
+        botonEliminarSonido_Pad2.setRoundBottomRight(25);
+        botonEliminarSonido_Pad2.setRoundTopLeft(25);
+        botonEliminarSonido_Pad2.setRoundTopRight(25);
+
+        label_EliminarSonido2.setBackground(new java.awt.Color(210, 210, 210));
+        label_EliminarSonido2.setFont(new java.awt.Font("Roboto Black", 1, 14)); // NOI18N
+        label_EliminarSonido2.setForeground(new java.awt.Color(255, 255, 255));
+        label_EliminarSonido2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_EliminarSonido2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/image-removebg-preview 1.png"))); // NOI18N
+        label_EliminarSonido2.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        javax.swing.GroupLayout botonEliminarSonido_Pad2Layout = new javax.swing.GroupLayout(botonEliminarSonido_Pad2);
+        botonEliminarSonido_Pad2.setLayout(botonEliminarSonido_Pad2Layout);
+        botonEliminarSonido_Pad2Layout.setHorizontalGroup(
+            botonEliminarSonido_Pad2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 33, Short.MAX_VALUE)
+            .addGroup(botonEliminarSonido_Pad2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_EliminarSonido2, javax.swing.GroupLayout.DEFAULT_SIZE, 33, Short.MAX_VALUE))
+        );
+        botonEliminarSonido_Pad2Layout.setVerticalGroup(
+            botonEliminarSonido_Pad2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 28, Short.MAX_VALUE)
+            .addGroup(botonEliminarSonido_Pad2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_EliminarSonido2, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE))
+        );
+
+        botonEliminarSonido_Pad3.setBackground(new java.awt.Color(235, 30, 50));
+        botonEliminarSonido_Pad3.setRoundBottomLeft(25);
+        botonEliminarSonido_Pad3.setRoundBottomRight(25);
+        botonEliminarSonido_Pad3.setRoundTopLeft(25);
+        botonEliminarSonido_Pad3.setRoundTopRight(25);
+
+        label_EliminarSonido3.setBackground(new java.awt.Color(210, 210, 210));
+        label_EliminarSonido3.setFont(new java.awt.Font("Roboto Black", 1, 14)); // NOI18N
+        label_EliminarSonido3.setForeground(new java.awt.Color(255, 255, 255));
+        label_EliminarSonido3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_EliminarSonido3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/image-removebg-preview 1.png"))); // NOI18N
+        label_EliminarSonido3.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        javax.swing.GroupLayout botonEliminarSonido_Pad3Layout = new javax.swing.GroupLayout(botonEliminarSonido_Pad3);
+        botonEliminarSonido_Pad3.setLayout(botonEliminarSonido_Pad3Layout);
+        botonEliminarSonido_Pad3Layout.setHorizontalGroup(
+            botonEliminarSonido_Pad3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 33, Short.MAX_VALUE)
+            .addGroup(botonEliminarSonido_Pad3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_EliminarSonido3, javax.swing.GroupLayout.DEFAULT_SIZE, 33, Short.MAX_VALUE))
+        );
+        botonEliminarSonido_Pad3Layout.setVerticalGroup(
+            botonEliminarSonido_Pad3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 28, Short.MAX_VALUE)
+            .addGroup(botonEliminarSonido_Pad3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_EliminarSonido3, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE))
+        );
+
+        botonEliminarSonido_Pad4.setBackground(new java.awt.Color(235, 30, 50));
+        botonEliminarSonido_Pad4.setRoundBottomLeft(25);
+        botonEliminarSonido_Pad4.setRoundBottomRight(25);
+        botonEliminarSonido_Pad4.setRoundTopLeft(25);
+        botonEliminarSonido_Pad4.setRoundTopRight(25);
+
+        label_EliminarSonido4.setBackground(new java.awt.Color(210, 210, 210));
+        label_EliminarSonido4.setFont(new java.awt.Font("Roboto Black", 1, 14)); // NOI18N
+        label_EliminarSonido4.setForeground(new java.awt.Color(255, 255, 255));
+        label_EliminarSonido4.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_EliminarSonido4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/image-removebg-preview 1.png"))); // NOI18N
+        label_EliminarSonido4.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        javax.swing.GroupLayout botonEliminarSonido_Pad4Layout = new javax.swing.GroupLayout(botonEliminarSonido_Pad4);
+        botonEliminarSonido_Pad4.setLayout(botonEliminarSonido_Pad4Layout);
+        botonEliminarSonido_Pad4Layout.setHorizontalGroup(
+            botonEliminarSonido_Pad4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 33, Short.MAX_VALUE)
+            .addGroup(botonEliminarSonido_Pad4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_EliminarSonido4, javax.swing.GroupLayout.DEFAULT_SIZE, 33, Short.MAX_VALUE))
+        );
+        botonEliminarSonido_Pad4Layout.setVerticalGroup(
+            botonEliminarSonido_Pad4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 28, Short.MAX_VALUE)
+            .addGroup(botonEliminarSonido_Pad4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_EliminarSonido4, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE))
+        );
+
+        botonEliminarSonido_Pad5.setBackground(new java.awt.Color(30, 215, 96));
+        botonEliminarSonido_Pad5.setRoundBottomLeft(25);
+        botonEliminarSonido_Pad5.setRoundBottomRight(25);
+        botonEliminarSonido_Pad5.setRoundTopLeft(25);
+        botonEliminarSonido_Pad5.setRoundTopRight(25);
+
+        label_EliminarSonido5.setBackground(new java.awt.Color(210, 210, 210));
+        label_EliminarSonido5.setFont(new java.awt.Font("Roboto Black", 1, 14)); // NOI18N
+        label_EliminarSonido5.setForeground(new java.awt.Color(255, 255, 255));
+        label_EliminarSonido5.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_EliminarSonido5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/image-removebg-preview 1.png"))); // NOI18N
+        label_EliminarSonido5.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        javax.swing.GroupLayout botonEliminarSonido_Pad5Layout = new javax.swing.GroupLayout(botonEliminarSonido_Pad5);
+        botonEliminarSonido_Pad5.setLayout(botonEliminarSonido_Pad5Layout);
+        botonEliminarSonido_Pad5Layout.setHorizontalGroup(
+            botonEliminarSonido_Pad5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 33, Short.MAX_VALUE)
+            .addGroup(botonEliminarSonido_Pad5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_EliminarSonido5, javax.swing.GroupLayout.DEFAULT_SIZE, 33, Short.MAX_VALUE))
+        );
+        botonEliminarSonido_Pad5Layout.setVerticalGroup(
+            botonEliminarSonido_Pad5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 28, Short.MAX_VALUE)
+            .addGroup(botonEliminarSonido_Pad5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_EliminarSonido5, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE))
+        );
+
+        botonEliminarSonido_Pad66.setBackground(new java.awt.Color(30, 215, 96));
+        botonEliminarSonido_Pad66.setRoundBottomLeft(25);
+        botonEliminarSonido_Pad66.setRoundBottomRight(25);
+        botonEliminarSonido_Pad66.setRoundTopLeft(25);
+        botonEliminarSonido_Pad66.setRoundTopRight(25);
+
+        label_EliminarSonido6.setBackground(new java.awt.Color(210, 210, 210));
+        label_EliminarSonido6.setFont(new java.awt.Font("Roboto Black", 1, 14)); // NOI18N
+        label_EliminarSonido6.setForeground(new java.awt.Color(255, 255, 255));
+        label_EliminarSonido6.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_EliminarSonido6.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/image-removebg-preview 1.png"))); // NOI18N
+        label_EliminarSonido6.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        javax.swing.GroupLayout botonEliminarSonido_Pad66Layout = new javax.swing.GroupLayout(botonEliminarSonido_Pad66);
+        botonEliminarSonido_Pad66.setLayout(botonEliminarSonido_Pad66Layout);
+        botonEliminarSonido_Pad66Layout.setHorizontalGroup(
+            botonEliminarSonido_Pad66Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 33, Short.MAX_VALUE)
+            .addGroup(botonEliminarSonido_Pad66Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_EliminarSonido6, javax.swing.GroupLayout.DEFAULT_SIZE, 33, Short.MAX_VALUE))
+        );
+        botonEliminarSonido_Pad66Layout.setVerticalGroup(
+            botonEliminarSonido_Pad66Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 28, Short.MAX_VALUE)
+            .addGroup(botonEliminarSonido_Pad66Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(label_EliminarSonido6, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE))
+        );
+
+        javax.swing.GroupLayout panelPrincipal_TresLayout = new javax.swing.GroupLayout(panelPrincipal_Tres);
+        panelPrincipal_Tres.setLayout(panelPrincipal_TresLayout);
+        panelPrincipal_TresLayout.setHorizontalGroup(
+            panelPrincipal_TresLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(panelHeaderPads1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(panelPrincipal_TresLayout.createSequentialGroup()
+                .addGap(23, 23, 23)
+                .addGroup(panelPrincipal_TresLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(panelPrincipal_TresLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                        .addGroup(panelPrincipal_TresLayout.createSequentialGroup()
+                            .addGroup(panelPrincipal_TresLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addComponent(botonSelecccionarSonido_Pad3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(botonConsultarSonido_Pad3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(botonEliminarSonido_Pad3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                            .addComponent(ControlVolumen3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, panelPrincipal_TresLayout.createSequentialGroup()
+                            .addGroup(panelPrincipal_TresLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addComponent(botonSelecccionarSonido_Pad1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(botonConsultarSonido_Pad1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(botonEliminarSonido_Pad1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                            .addComponent(ControlVolumen1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(panelPrincipal_TresLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addComponent(label_AjustePAD_3, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 71, Short.MAX_VALUE)
+                        .addComponent(label_AjustePAD_5, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(label_AjustePAD_1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(panelPrincipal_TresLayout.createSequentialGroup()
+                        .addGroup(panelPrincipal_TresLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(botonSelecccionarSonido_Pad5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(botonConsultarSonido_Pad5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(botonEliminarSonido_Pad5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(ControlVolumen5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(58, 58, 58)
+                .addGroup(panelPrincipal_TresLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(panelPrincipal_TresLayout.createSequentialGroup()
+                        .addGroup(panelPrincipal_TresLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(botonSelecccionarSonido_Pad2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(botonConsultarSonido_Pad2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(botonEliminarSonido_Pad2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(ControlVolumen2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(label_AjustePAD_2, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(panelPrincipal_TresLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addComponent(label_AjustePAD_6, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(label_AjustePAD_4, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, panelPrincipal_TresLayout.createSequentialGroup()
+                            .addGroup(panelPrincipal_TresLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addComponent(botonSelecccionarSonido_Pad4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(botonConsultarSonido_Pad44, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(botonEliminarSonido_Pad4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                            .addComponent(ControlVolumen4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(panelPrincipal_TresLayout.createSequentialGroup()
+                        .addGroup(panelPrincipal_TresLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(botonSelecccionarSonido_Pad6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(botonConsultarSonido_Pad6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(botonEliminarSonido_Pad66, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(ControlVolumen6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(33, Short.MAX_VALUE))
+        );
+        panelPrincipal_TresLayout.setVerticalGroup(
+            panelPrincipal_TresLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelPrincipal_TresLayout.createSequentialGroup()
+                .addComponent(panelHeaderPads1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(panelPrincipal_TresLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(label_AjustePAD_1)
+                    .addComponent(label_AjustePAD_2))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(panelPrincipal_TresLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(ControlVolumen2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addGroup(panelPrincipal_TresLayout.createSequentialGroup()
+                        .addComponent(botonSelecccionarSonido_Pad1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(botonConsultarSonido_Pad1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(botonEliminarSonido_Pad1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(panelPrincipal_TresLayout.createSequentialGroup()
+                        .addComponent(botonSelecccionarSonido_Pad2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(botonConsultarSonido_Pad2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(botonEliminarSonido_Pad2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(ControlVolumen1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                .addGap(32, 32, 32)
+                .addGroup(panelPrincipal_TresLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(label_AjustePAD_3)
+                    .addComponent(label_AjustePAD_4, javax.swing.GroupLayout.Alignment.TRAILING))
+                .addGap(18, 18, 18)
+                .addGroup(panelPrincipal_TresLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(ControlVolumen3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelPrincipal_TresLayout.createSequentialGroup()
+                        .addComponent(botonSelecccionarSonido_Pad3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(7, 7, 7)
+                        .addComponent(botonConsultarSonido_Pad3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(botonEliminarSonido_Pad3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(panelPrincipal_TresLayout.createSequentialGroup()
+                        .addComponent(botonSelecccionarSonido_Pad4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(botonConsultarSonido_Pad44, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(botonEliminarSonido_Pad4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(ControlVolumen4, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                .addGap(32, 32, 32)
+                .addGroup(panelPrincipal_TresLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(label_AjustePAD_5)
+                    .addComponent(label_AjustePAD_6))
+                .addGap(18, 18, 18)
+                .addGroup(panelPrincipal_TresLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(panelPrincipal_TresLayout.createSequentialGroup()
+                        .addComponent(botonSelecccionarSonido_Pad6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(botonConsultarSonido_Pad6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(botonEliminarSonido_Pad66, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(ControlVolumen5, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelPrincipal_TresLayout.createSequentialGroup()
+                        .addComponent(botonSelecccionarSonido_Pad5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(botonConsultarSonido_Pad5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(botonEliminarSonido_Pad5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(ControlVolumen6, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        bg.add(panelPrincipal_Tres, new org.netbeans.lib.awtextra.AbsoluteConstraints(660, 50, 250, 580));
+
+        panelPrincipal_Cuatro.setBackground(new java.awt.Color(18, 18, 18));
+        panelPrincipal_Cuatro.setRoundBottomLeft(25);
+        panelPrincipal_Cuatro.setRoundBottomRight(25);
+        panelPrincipal_Cuatro.setRoundTopLeft(25);
+        panelPrincipal_Cuatro.setRoundTopRight(25);
+
+        label_VolPaneles.setBackground(new java.awt.Color(210, 210, 210));
+        label_VolPaneles.setFont(new java.awt.Font("Roboto Black", 0, 15)); // NOI18N
+        label_VolPaneles.setForeground(new java.awt.Color(230, 230, 230));
+        label_VolPaneles.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        label_VolPaneles.setText("Vol. General de Paneles");
+
+        label_VolCancion.setBackground(new java.awt.Color(210, 210, 210));
+        label_VolCancion.setFont(new java.awt.Font("Roboto Black", 0, 15)); // NOI18N
+        label_VolCancion.setForeground(new java.awt.Color(230, 230, 230));
+        label_VolCancion.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        label_VolCancion.setText("Vol. Cancion");
+
+        javax.swing.GroupLayout panelPrincipal_CuatroLayout = new javax.swing.GroupLayout(panelPrincipal_Cuatro);
+        panelPrincipal_Cuatro.setLayout(panelPrincipal_CuatroLayout);
+        panelPrincipal_CuatroLayout.setHorizontalGroup(
+            panelPrincipal_CuatroLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelPrincipal_CuatroLayout.createSequentialGroup()
+                .addGap(15, 15, 15)
+                .addGroup(panelPrincipal_CuatroLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(label_VolPaneles, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(sliderVolumenPaneles, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addComponent(label_VolCancion, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(sliderVolumenCancion, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                .addContainerGap(14, Short.MAX_VALUE))
+        );
+        panelPrincipal_CuatroLayout.setVerticalGroup(
+            panelPrincipal_CuatroLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelPrincipal_CuatroLayout.createSequentialGroup()
+                .addGap(23, 23, 23)
+                .addComponent(label_VolPaneles)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(sliderVolumenPaneles, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(label_VolCancion)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 11, Short.MAX_VALUE)
+                .addComponent(sliderVolumenCancion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
+
+        bg.add(panelPrincipal_Cuatro, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 480, 190, 150));
+
+        panelPrincipal_Cinco.setBackground(new java.awt.Color(18, 18, 18));
+        panelPrincipal_Cinco.setRoundBottomLeft(25);
+        panelPrincipal_Cinco.setRoundBottomRight(25);
+        panelPrincipal_Cinco.setRoundTopLeft(25);
+        panelPrincipal_Cinco.setRoundTopRight(25);
+
+        label_TituloCancion.setBackground(new java.awt.Color(210, 210, 210));
+        label_TituloCancion.setFont(new java.awt.Font("Roboto", 1, 18)); // NOI18N
+        label_TituloCancion.setForeground(new java.awt.Color(210, 210, 210));
+        label_TituloCancion.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        label_TituloCancion.setText("<html>Song Title</html>");
+
+        label_MusicTimeFinal.setBackground(new java.awt.Color(210, 210, 210));
+        label_MusicTimeFinal.setFont(new java.awt.Font("Roboto Medium", 0, 14)); // NOI18N
+        label_MusicTimeFinal.setForeground(new java.awt.Color(230, 230, 230));
+        label_MusicTimeFinal.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_MusicTimeFinal.setText("0:00");
+
+        label_MusicTimeInicial.setBackground(new java.awt.Color(210, 210, 210));
+        label_MusicTimeInicial.setFont(new java.awt.Font("Roboto Medium", 0, 14)); // NOI18N
+        label_MusicTimeInicial.setForeground(new java.awt.Color(230, 230, 230));
+        label_MusicTimeInicial.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_MusicTimeInicial.setText("0:00");
+
+        barraDeProgresoCancion.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+            public void mouseDragged(java.awt.event.MouseEvent evt) {
+                barraDeProgresoCancionMouseDragged(evt);
+            }
+        });
+        barraDeProgresoCancion.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                barraDeProgresoCancionMouseClicked(evt);
+            }
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                barraDeProgresoCancionMousePressed(evt);
+            }
+            public void mouseReleased(java.awt.event.MouseEvent evt) {
+                barraDeProgresoCancionMouseReleased(evt);
+            }
+        });
+
+        panelReiniciarCancion.setBackground(new java.awt.Color(204, 204, 204));
+        panelReiniciarCancion.setRoundBottomLeft(40);
+        panelReiniciarCancion.setRoundBottomRight(40);
+        panelReiniciarCancion.setRoundTopLeft(40);
+        panelReiniciarCancion.setRoundTopRight(40);
+
+        reiniciarCancion.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        reiniciarCancion.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/Reiniciar.png"))); // NOI18N
+        reiniciarCancion.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        reiniciarCancion.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                reiniciarCancionMouseClicked(evt);
+            }
+        });
+
+        javax.swing.GroupLayout panelReiniciarCancionLayout = new javax.swing.GroupLayout(panelReiniciarCancion);
+        panelReiniciarCancion.setLayout(panelReiniciarCancionLayout);
+        panelReiniciarCancionLayout.setHorizontalGroup(
+            panelReiniciarCancionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelReiniciarCancionLayout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(reiniciarCancion, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+        panelReiniciarCancionLayout.setVerticalGroup(
+            panelReiniciarCancionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelReiniciarCancionLayout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(reiniciarCancion, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+
+        panelPauseCancion.setBackground(new java.awt.Color(204, 204, 204));
+        panelPauseCancion.setRoundBottomLeft(40);
+        panelPauseCancion.setRoundBottomRight(40);
+        panelPauseCancion.setRoundTopLeft(40);
+        panelPauseCancion.setRoundTopRight(40);
+
+        pauseCancion.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        pauseCancion.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/Pause.png"))); // NOI18N
+        pauseCancion.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        pauseCancion.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                pauseCancionMouseClicked(evt);
+            }
+        });
+
+        javax.swing.GroupLayout panelPauseCancionLayout = new javax.swing.GroupLayout(panelPauseCancion);
+        panelPauseCancion.setLayout(panelPauseCancionLayout);
+        panelPauseCancionLayout.setHorizontalGroup(
+            panelPauseCancionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelPauseCancionLayout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(pauseCancion, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+        panelPauseCancionLayout.setVerticalGroup(
+            panelPauseCancionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelPauseCancionLayout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(pauseCancion, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+
+        panelSubirCancion.setBackground(new java.awt.Color(204, 204, 204));
+        panelSubirCancion.setRoundBottomLeft(40);
+        panelSubirCancion.setRoundBottomRight(40);
+        panelSubirCancion.setRoundTopLeft(40);
+        panelSubirCancion.setRoundTopRight(40);
+
+        subirCancion.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        subirCancion.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/SubirArchivo.png"))); // NOI18N
+        subirCancion.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        subirCancion.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                subirCancionMouseClicked(evt);
+            }
+        });
+
+        javax.swing.GroupLayout panelSubirCancionLayout = new javax.swing.GroupLayout(panelSubirCancion);
+        panelSubirCancion.setLayout(panelSubirCancionLayout);
+        panelSubirCancionLayout.setHorizontalGroup(
+            panelSubirCancionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelSubirCancionLayout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(subirCancion, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+        panelSubirCancionLayout.setVerticalGroup(
+            panelSubirCancionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelSubirCancionLayout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(subirCancion, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+
+        panelPlayCancion.setBackground(new java.awt.Color(204, 204, 204));
+        panelPlayCancion.setRoundBottomLeft(40);
+        panelPlayCancion.setRoundBottomRight(40);
+        panelPlayCancion.setRoundTopLeft(40);
+        panelPlayCancion.setRoundTopRight(40);
+
+        playCancion.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        playCancion.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/Play.png"))); // NOI18N
+        playCancion.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        playCancion.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                playCancionMouseClicked(evt);
+            }
+        });
+
+        javax.swing.GroupLayout panelPlayCancionLayout = new javax.swing.GroupLayout(panelPlayCancion);
+        panelPlayCancion.setLayout(panelPlayCancionLayout);
+        panelPlayCancionLayout.setHorizontalGroup(
+            panelPlayCancionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelPlayCancionLayout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(playCancion, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+        panelPlayCancionLayout.setVerticalGroup(
+            panelPlayCancionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelPlayCancionLayout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(playCancion, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+
+        javax.swing.GroupLayout panelPrincipal_CincoLayout = new javax.swing.GroupLayout(panelPrincipal_Cinco);
+        panelPrincipal_Cinco.setLayout(panelPrincipal_CincoLayout);
+        panelPrincipal_CincoLayout.setHorizontalGroup(
+            panelPrincipal_CincoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 410, Short.MAX_VALUE)
+            .addGroup(panelPrincipal_CincoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(panelPrincipal_CincoLayout.createSequentialGroup()
+                    .addGap(0, 0, Short.MAX_VALUE)
+                    .addGroup(panelPrincipal_CincoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(label_TituloCancion, javax.swing.GroupLayout.PREFERRED_SIZE, 380, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(panelPrincipal_CincoLayout.createSequentialGroup()
+                            .addComponent(label_MusicTimeInicial, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGap(10, 10, 10)
+                            .addComponent(barraDeProgresoCancion, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGap(10, 10, 10)
+                            .addComponent(label_MusicTimeFinal))
+                        .addGroup(panelPrincipal_CincoLayout.createSequentialGroup()
+                            .addGap(90, 90, 90)
+                            .addComponent(panelSubirCancion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGap(20, 20, 20)
+                            .addComponent(panelPlayCancion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGap(20, 20, 20)
+                            .addComponent(panelPauseCancion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGap(20, 20, 20)
+                            .addComponent(panelReiniciarCancion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGap(0, 0, Short.MAX_VALUE)))
+        );
+        panelPrincipal_CincoLayout.setVerticalGroup(
+            panelPrincipal_CincoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 150, Short.MAX_VALUE)
+            .addGroup(panelPrincipal_CincoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(panelPrincipal_CincoLayout.createSequentialGroup()
+                    .addGap(0, 0, Short.MAX_VALUE)
+                    .addComponent(label_TituloCancion, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGap(21, 21, 21)
+                    .addGroup(panelPrincipal_CincoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(label_MusicTimeInicial, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(panelPrincipal_CincoLayout.createSequentialGroup()
+                            .addGap(14, 14, 14)
+                            .addComponent(barraDeProgresoCancion, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(label_MusicTimeFinal, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(panelPrincipal_CincoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(panelSubirCancion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(panelPlayCancion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(panelPauseCancion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(panelReiniciarCancion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGap(0, 0, Short.MAX_VALUE)))
+        );
+
+        bg.add(panelPrincipal_Cinco, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 480, 410, 150));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(bg, javax.swing.GroupLayout.PREFERRED_SIZE, 671, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+            .addComponent(bg, javax.swing.GroupLayout.DEFAULT_SIZE, 949, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(bg, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(bg, javax.swing.GroupLayout.PREFERRED_SIZE, 651, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    
-    /*
-    
-    Cambiar de ventana: Ajustar Pads
-    
-    */
-    private void labelAjustesIconMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_labelAjustesIconMouseClicked
-       cambiarVentana(new AjustesPadsSampler());
-    }//GEN-LAST:event_labelAjustesIconMouseClicked
+    //Boton guardar Pads
+    private void label_GuardarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_label_GuardarMouseClicked
+        saveAudioFiles();
+    }//GEN-LAST:event_label_GuardarMouseClicked
 
-    
-    /*
-    
-    Evento Reproducir Sonido Asignado
-    
-    */
-    private void labelPadSound1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_labelPadSound1MouseClicked
-        
-    }//GEN-LAST:event_labelPadSound1MouseClicked
+    //Boton reestablecer todos los pads
+    private void label_ReestablecerMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_label_ReestablecerMouseClicked
+        resetAudioFiles();
+    }//GEN-LAST:event_label_ReestablecerMouseClicked
+
+    private void label_GuardarMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_label_GuardarMouseEntered
+        botonGuardar.setBackground(new Color(180, 180, 180));
+    }//GEN-LAST:event_label_GuardarMouseEntered
+
+    private void label_GuardarMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_label_GuardarMouseExited
+        botonGuardar.setBackground(new Color(204, 204, 204));
+    }//GEN-LAST:event_label_GuardarMouseExited
+
+    private void label_ReestablecerMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_label_ReestablecerMouseEntered
+        botonReestablecer.setBackground(new Color(180, 180, 180));
+    }//GEN-LAST:event_label_ReestablecerMouseEntered
+
+    private void label_ReestablecerMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_label_ReestablecerMouseExited
+        botonReestablecer.setBackground(new Color(204, 204, 204));
+    }//GEN-LAST:event_label_ReestablecerMouseExited
+
+    private void subirCancionMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_subirCancionMouseClicked
+        musicPlayer.subirCancion();
+    }//GEN-LAST:event_subirCancionMouseClicked
+
+    private void pauseCancionMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pauseCancionMouseClicked
+        musicPlayer.pauseMusic();
+    }//GEN-LAST:event_pauseCancionMouseClicked
+
+    private void reiniciarCancionMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_reiniciarCancionMouseClicked
+        musicPlayer.reiniciarCancion();
+    }//GEN-LAST:event_reiniciarCancionMouseClicked
+
+    private void playCancionMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_playCancionMouseClicked
+        musicPlayer.playMusic();
+    }//GEN-LAST:event_playCancionMouseClicked
+
+    private void barraDeProgresoCancionMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_barraDeProgresoCancionMouseClicked
+        // Obtener la posición del clic y el ancho de la barra
+        int clickPosition = evt.getX();
+        int barraWidth = barraDeProgresoCancion.getWidth();
+
+        // Calcular la nueva posición en segundos
+        long newPosition = (long) ((clickPosition / (double) barraWidth) * musicPlayer.getMusicLength() / 1_000_000);
+
+        // Mover la posición de la canción
+        musicPlayer.setMusicPosition(newPosition);
+
+        // Actualizar visualmente el tiempo y la barra
+        barraDeProgresoCancion.setValue((int) newPosition);
+        label_MusicTimeInicial.setText(formatTime(newPosition)); // Formatear tiempo en minutos:segundos
+    }//GEN-LAST:event_barraDeProgresoCancionMouseClicked
+
+    private void barraDeProgresoCancionMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_barraDeProgresoCancionMouseDragged
+        int dragPosition = evt.getX(); // Obtener la posición del mouse en la barra
+        int barraWidth = barraDeProgresoCancion.getWidth(); // Ancho de la barra
+        long newPosition = (long) ((dragPosition / (double) barraWidth) * musicPlayer.getMusicLength());
+
+        // Ajustar la barra y la posición del tiempo
+        barraDeProgresoCancion.setValue((int) (newPosition / 1_000_000)); // Actualiza visualmente la barra
+        musicPlayer.setMusicPosition(newPosition / 1_000_000); // Actualiza la posición de la música
+
+        // Mostrar el tiempo actualizado en el label
+        label_MusicTimeInicial.setText(formatTime(newPosition / 1_000_000));
+    }//GEN-LAST:event_barraDeProgresoCancionMouseDragged
+
+    private void barraDeProgresoCancionMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_barraDeProgresoCancionMousePressed
+        musicPlayer.pauseMusic(); // Pausa la música al empezar a arrastrar
+    }//GEN-LAST:event_barraDeProgresoCancionMousePressed
+
+    private void barraDeProgresoCancionMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_barraDeProgresoCancionMouseReleased
+        musicPlayer.playMusic(); // Reanuda la música al soltar el mouse
+    }//GEN-LAST:event_barraDeProgresoCancionMouseReleased
+
+    // Método auxiliar para formatear el tiempo
+    private String formatTime(long seconds) {
+        return String.format("%d:%02d", TimeUnit.SECONDS.toMinutes(seconds), seconds % 60);
+    }
 
     public void cambiarVentana(JFrame nuevaVentana) {
         nuevaVentana.setVisible(true);
         nuevaVentana.setLocationRelativeTo(null);
     }
+
     /**
      * @param args the command line arguments
      */
@@ -680,19 +2165,41 @@ public class PrincipalSampler extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new PrincipalSampler().setVisible(true);
-            }
+        java.awt.EventQueue.invokeLater(() -> {
+            new PrincipalSampler().setVisible(true);
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JSlider ControlVolumen1;
+    private javax.swing.JSlider ControlVolumen2;
+    private javax.swing.JSlider ControlVolumen3;
+    private javax.swing.JSlider ControlVolumen4;
+    private javax.swing.JSlider ControlVolumen5;
+    private javax.swing.JSlider ControlVolumen6;
+    private javax.swing.JProgressBar barraDeProgresoCancion;
     private javax.swing.JPanel bg;
+    private interfaceSampler.PanelRound botonConsultarSonido_Pad1;
+    private interfaceSampler.PanelRound botonConsultarSonido_Pad2;
+    private interfaceSampler.PanelRound botonConsultarSonido_Pad3;
+    private interfaceSampler.PanelRound botonConsultarSonido_Pad44;
+    private interfaceSampler.PanelRound botonConsultarSonido_Pad5;
+    private interfaceSampler.PanelRound botonConsultarSonido_Pad6;
+    private interfaceSampler.PanelRound botonEliminarSonido_Pad1;
+    private interfaceSampler.PanelRound botonEliminarSonido_Pad2;
+    private interfaceSampler.PanelRound botonEliminarSonido_Pad3;
+    private interfaceSampler.PanelRound botonEliminarSonido_Pad4;
+    private interfaceSampler.PanelRound botonEliminarSonido_Pad5;
+    private interfaceSampler.PanelRound botonEliminarSonido_Pad66;
     private interfaceSampler.PanelRound botonGuardar;
     private interfaceSampler.PanelRound botonReestablecer;
+    private interfaceSampler.PanelRound botonSelecccionarSonido_Pad1;
+    private interfaceSampler.PanelRound botonSelecccionarSonido_Pad2;
+    private interfaceSampler.PanelRound botonSelecccionarSonido_Pad3;
+    private interfaceSampler.PanelRound botonSelecccionarSonido_Pad4;
+    private interfaceSampler.PanelRound botonSelecccionarSonido_Pad5;
+    private interfaceSampler.PanelRound botonSelecccionarSonido_Pad6;
     private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JLabel labelAjustesIcon;
     private javax.swing.JLabel labelPadSound1;
     private javax.swing.JLabel labelPadSound2;
     private javax.swing.JLabel labelPadSound3;
@@ -701,8 +2208,29 @@ public class PrincipalSampler extends javax.swing.JFrame {
     private javax.swing.JLabel labelPadSound6;
     private javax.swing.JLabel labelPerfil_Seleccionado;
     private javax.swing.JLabel labelTitulo_PADS;
+    private javax.swing.JLabel labelTitulo_PADS1;
+    private javax.swing.JLabel label_AjustePAD_1;
+    private javax.swing.JLabel label_AjustePAD_2;
+    private javax.swing.JLabel label_AjustePAD_3;
+    private javax.swing.JLabel label_AjustePAD_4;
+    private javax.swing.JLabel label_AjustePAD_5;
+    private javax.swing.JLabel label_AjustePAD_6;
+    private javax.swing.JLabel label_ConsultarSonido1;
+    private javax.swing.JLabel label_ConsultarSonido2;
+    private javax.swing.JLabel label_ConsultarSonido3;
+    private javax.swing.JLabel label_ConsultarSonido4;
+    private javax.swing.JLabel label_ConsultarSonido5;
+    private javax.swing.JLabel label_ConsultarSonido6;
+    private javax.swing.JLabel label_EliminarSonido1;
+    private javax.swing.JLabel label_EliminarSonido2;
+    private javax.swing.JLabel label_EliminarSonido3;
+    private javax.swing.JLabel label_EliminarSonido4;
+    private javax.swing.JLabel label_EliminarSonido5;
+    private javax.swing.JLabel label_EliminarSonido6;
     private javax.swing.JLabel label_Guardar;
     private javax.swing.JLabel label_ImageLibrary;
+    private javax.swing.JLabel label_MusicTimeFinal;
+    private javax.swing.JLabel label_MusicTimeInicial;
     private javax.swing.JLabel label_NumeroDelPAD_1;
     private javax.swing.JLabel label_NumeroDelPAD_2;
     private javax.swing.JLabel label_NumeroDelPAD_3;
@@ -711,24 +2239,46 @@ public class PrincipalSampler extends javax.swing.JFrame {
     private javax.swing.JLabel label_NumeroDelPAD_6;
     private javax.swing.JLabel label_PerfilSeleccionado;
     private javax.swing.JLabel label_Reestablecer;
+    private javax.swing.JLabel label_SeleccionarSonido1;
+    private javax.swing.JLabel label_SeleccionarSonido2;
+    private javax.swing.JLabel label_SeleccionarSonido3;
+    private javax.swing.JLabel label_SeleccionarSonido4;
+    private javax.swing.JLabel label_SeleccionarSonido5;
+    private javax.swing.JLabel label_SeleccionarSonido6;
     private javax.swing.JLabel label_TextoGuardar;
     private javax.swing.JLabel label_TextoReestablecer;
+    private javax.swing.JLabel label_TituloCancion;
     private javax.swing.JLabel label_TituloGuardar;
     private javax.swing.JLabel label_TituloReestablecer;
+    private javax.swing.JLabel label_VolCancion;
+    private javax.swing.JLabel label_VolPaneles;
     private interfaceSampler.PanelRound padSound1;
-    private interfaceSampler.PanelRound padSound11;
-    private interfaceSampler.PanelRound padSound14;
     private interfaceSampler.PanelRound padSound2;
     private interfaceSampler.PanelRound padSound3;
     private interfaceSampler.PanelRound padSound4;
+    private interfaceSampler.PanelRound padSound5;
+    private interfaceSampler.PanelRound padSound6;
     private interfaceSampler.PanelRound panelGuardar;
     private interfaceSampler.PanelRound panelHeaderPads;
+    private interfaceSampler.PanelRound panelHeaderPads1;
+    private interfaceSampler.PanelRound panelPauseCancion;
     private interfaceSampler.PanelRound panelPerfil;
+    private interfaceSampler.PanelRound panelPlayCancion;
+    private interfaceSampler.PanelRound panelPrincipal_Cinco;
+    private interfaceSampler.PanelRound panelPrincipal_Cuatro;
     private interfaceSampler.PanelRound panelPrincipal_Dos;
+    private javax.swing.JPanel panelPrincipal_Tres;
     private interfaceSampler.PanelRound panelPrincipal_Uno;
     private interfaceSampler.PanelRound panelReestablecer;
-    private javax.swing.JPanel panelRelleno;
+    private interfaceSampler.PanelRound panelReiniciarCancion;
+    private interfaceSampler.PanelRound panelSubirCancion;
     private interfaceSampler.PanelRound panelTextoGuardar;
     private interfaceSampler.PanelRound panelTextoReestablecer;
+    private javax.swing.JLabel pauseCancion;
+    private javax.swing.JLabel playCancion;
+    private javax.swing.JLabel reiniciarCancion;
+    private javax.swing.JSlider sliderVolumenCancion;
+    private javax.swing.JSlider sliderVolumenPaneles;
+    private javax.swing.JLabel subirCancion;
     // End of variables declaration//GEN-END:variables
 }

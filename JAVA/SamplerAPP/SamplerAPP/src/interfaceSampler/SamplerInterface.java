@@ -44,8 +44,6 @@ public class SamplerInterface extends javax.swing.JFrame {
         jMenuItem1 = new javax.swing.JMenuItem();
         bg = new javax.swing.JPanel();
         jSeparator1 = new javax.swing.JSeparator();
-        panelTextoReestablecer = new interfaceSampler.PanelRound();
-        label_TextoReestablecer = new javax.swing.JLabel();
         header = new javax.swing.JPanel();
         beatlabLabel = new javax.swing.JLabel();
         iconBeatLab = new javax.swing.JLabel();
@@ -90,8 +88,6 @@ public class SamplerInterface extends javax.swing.JFrame {
         numeroDelPadPanel6 = new javax.swing.JPanel();
         numeroDelPad106 = new javax.swing.JLabel();
         pad6 = new javax.swing.JPanel();
-        jPanel1 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
 
         jMenuItem1.setText("jMenuItem1");
 
@@ -102,37 +98,6 @@ public class SamplerInterface extends javax.swing.JFrame {
         bg.setBackground(new java.awt.Color(19, 19, 19));
         bg.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
         bg.add(jSeparator1, new org.netbeans.lib.awtextra.AbsoluteConstraints(-40, 30, 920, 10));
-
-        panelTextoReestablecer.setBackground(new java.awt.Color(31, 31, 31));
-        panelTextoReestablecer.setRoundBottomLeft(30);
-        panelTextoReestablecer.setRoundBottomRight(30);
-        panelTextoReestablecer.setRoundTopLeft(30);
-        panelTextoReestablecer.setRoundTopRight(30);
-
-        label_TextoReestablecer.setBackground(new java.awt.Color(210, 210, 210));
-        label_TextoReestablecer.setFont(new java.awt.Font("Roboto Medium", 0, 13)); // NOI18N
-        label_TextoReestablecer.setForeground(new java.awt.Color(230, 230, 230));
-        label_TextoReestablecer.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        label_TextoReestablecer.setText("<html>Guardar los sonidos de los pads en el perfil seleccionado.<html>");
-
-        javax.swing.GroupLayout panelTextoReestablecerLayout = new javax.swing.GroupLayout(panelTextoReestablecer);
-        panelTextoReestablecer.setLayout(panelTextoReestablecerLayout);
-        panelTextoReestablecerLayout.setHorizontalGroup(
-            panelTextoReestablecerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panelTextoReestablecerLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(label_TextoReestablecer, javax.swing.GroupLayout.DEFAULT_SIZE, 148, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        panelTextoReestablecerLayout.setVerticalGroup(
-            panelTextoReestablecerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panelTextoReestablecerLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(label_TextoReestablecer, javax.swing.GroupLayout.DEFAULT_SIZE, 68, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-
-        bg.add(panelTextoReestablecer, new org.netbeans.lib.awtextra.AbsoluteConstraints(520, 290, 160, 80));
 
         header.setBackground(new java.awt.Color(0, 0, 0));
         header.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
@@ -885,25 +850,6 @@ public class SamplerInterface extends javax.swing.JFrame {
 
         bg.add(panelPADS, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 30, 490, 460));
 
-        jPanel1.setBackground(new java.awt.Color(31, 31, 31));
-
-        jLabel1.setFont(new java.awt.Font("Roboto Medium", 0, 13)); // NOI18N
-        jLabel1.setForeground(new java.awt.Color(230, 230, 230));
-        jLabel1.setText("<html>Guardar los sonidos de los pads en el perfil seleccionado.<html>");
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 180, Short.MAX_VALUE)
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 80, Short.MAX_VALUE)
-        );
-
-        bg.add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(570, 90, 180, 80));
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -1214,11 +1160,8 @@ public class SamplerInterface extends javax.swing.JFrame {
     private javax.swing.JPanel estructuraPanel60;
     private javax.swing.JPanel header;
     private javax.swing.JLabel iconBeatLab;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JMenuItem jMenuItem1;
-    private javax.swing.JPanel jPanel1;
     private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JLabel label_TextoReestablecer;
     private javax.swing.JLabel minimizarTXT;
     private javax.swing.JLabel numeroDelPad101;
     private javax.swing.JLabel numeroDelPad102;
@@ -1241,6 +1184,5 @@ public class SamplerInterface extends javax.swing.JFrame {
     private javax.swing.JPanel panelCerrarPantalla;
     private javax.swing.JPanel panelMinimizar;
     private javax.swing.JPanel panelPADS;
-    private interfaceSampler.PanelRound panelTextoReestablecer;
     // End of variables declaration//GEN-END:variables
 }
