@@ -1,4 +1,4 @@
-package interfaceSampler;
+package probandoElementos;
 
 import java.awt.Color;
 import java.io.*;

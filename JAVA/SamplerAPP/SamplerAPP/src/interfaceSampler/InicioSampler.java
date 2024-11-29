@@ -15,7 +15,7 @@ public class InicioSampler extends javax.swing.JFrame {
         initComponents();
         this.setLocationRelativeTo(null);
         
-        ImageIcon icon = new ImageIcon(getClass().getResource("/img/beatLogoRedimensionado.png"));
+        ImageIcon icon = new ImageIcon(getClass().getResource("/img/padland.jpg"));
         setIconImage(icon.getImage());
     }
 

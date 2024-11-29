@@ -138,6 +138,23 @@ public class BackgroundMusicPlayer {
             }
         }
     }
+    
+    public void adjustSongVolume(float volumePercentage) {
+    if (musicClip != null && musicClip.isOpen()) {
+        try {
+            FloatControl gainControl = (FloatControl) musicClip.getControl(FloatControl.Type.MASTER_GAIN);
+
+            // Convierte el porcentaje en un rango de decibelios
+            float minGain = gainControl.getMinimum();
+            float maxGain = gainControl.getMaximum();
+            float newGain = minGain + (volumePercentage / 100.0f) * (maxGain - minGain);
+
+            gainControl.setValue(newGain);
+        } catch (IllegalArgumentException e) {
+            System.err.println("Control de volumen no soportado: " + e.getMessage());
+        }
+    }
+}
 
     // Formatear tiempo en minutos:segundos
     private String formatTime(long seconds) {

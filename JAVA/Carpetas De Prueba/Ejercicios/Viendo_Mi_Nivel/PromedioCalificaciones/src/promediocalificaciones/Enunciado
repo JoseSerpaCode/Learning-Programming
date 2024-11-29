@@ -1,0 +1,19 @@
+Ejercicio 3.5: Promedio de calificaciones
+
+Crea un programa que:
+
+1. Pida al usuario cuántas calificaciones desea ingresar.
+
+2. Permita ingresar las calificaciones (deben ser números enteros entre 0 y 100, valídalo).
+
+3. Calcule y muestre el promedio de las calificaciones.
+
+4. Clasifique el promedio según la escala:
+    - 90-100: Excelente
+    - 80-89: Muy bueno
+    - 70-79: Bueno
+    - 60-69: Regular
+    - 0-59: Insuficiente
+
+Además, si el usuario ingresa una calificación fuera del rango, muestra un mensaje de error y 
+pide nuevamente esa calificación.

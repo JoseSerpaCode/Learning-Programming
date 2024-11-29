@@ -1,11 +1,15 @@
 package interfaceSampler;
 
+import javax.swing.SwingUtilities;
+
+import com.fazecast.jSerialComm.SerialPort;
 import java.util.concurrent.TimeUnit;
 import java.awt.Color;
 import java.awt.FileDialog;
 import java.awt.Frame;
 import java.awt.HeadlessException;
 import java.io.*;
+import java.util.Scanner;
 import javax.sound.sampled.*;
 import javax.sound.sampled.Clip;
 import javax.swing.ImageIcon;
@@ -14,22 +18,29 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
+import javax.swing.Timer;
 
 /**
  * @author José_Serpa
  */
 public class PrincipalSampler extends javax.swing.JFrame {
 
+    private boolean[] noteIsOn = new boolean[6];
     private final File[] audioFiles; // Array para almacenar el archivo de audio de cada pad
     private final Clip[] audioClips; // Array para controlar la reproducción de cada pad
     private final JSlider[] volumeSliders; // Array de sliders de volumen
+    private PanelRound[] padPanels;
     private static final int NUMBER_OF_PADS = 6; // Número de pads
     private BackgroundMusicPlayer musicPlayer; // Declarar como atributo de clase
+    private SerialPort puerto;
+    private Thread lecturaHilo;
 
     public PrincipalSampler() {
         initComponents();
 
-        ImageIcon icon = new ImageIcon(getClass().getResource("/img/beatLogoRedimensionado.png"));
+        noteIsOn = new boolean[6];  // Suponiendo que tienes 6 pads
+
+        ImageIcon icon = new ImageIcon(getClass().getResource("/img/padland.jpg"));
         setIconImage(icon.getImage());
 
         // Inicializa los arrays
@@ -116,7 +127,7 @@ public class PrincipalSampler extends javax.swing.JFrame {
         }
 
         // Array para los paneles de los pads
-        PanelRound[] padPanels = {padSound1, padSound2, padSound3, padSound4, padSound5, padSound6};
+        padPanels = new PanelRound[]{padSound1, padSound2, padSound3, padSound4, padSound5, padSound6};
 
         // Array para los labels de los pads
         JLabel[] labels = {labelPadSound1, labelPadSound2, labelPadSound3, labelPadSound4, labelPadSound5, labelPadSound6};
@@ -135,7 +146,7 @@ public class PrincipalSampler extends javax.swing.JFrame {
                 public void mouseReleased(java.awt.event.MouseEvent evt) {
                     padPanels[padIndex].setBackground(padPanels[padIndex].getBackground().brighter()); // Regresa al color original al soltar
                     try {
-                        playAudio(padIndex);
+                        playAudio(padIndex); // Reproduce el sonido asociado al pad
                     } catch (IOException ex) {
                         java.util.logging.Logger.getLogger(PrincipalSampler.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
                     }
@@ -168,9 +179,9 @@ public class PrincipalSampler extends javax.swing.JFrame {
         }
 
         //Configuración para Controles de Cancion
-        JLabel[] controlesCancion = {reiniciarCancion, pauseCancion, subirCancion, playCancion};
+        JLabel[] controlesCancion = {consultarInfo, reiniciarCancion, pauseCancion, subirCancion, playCancion};
 
-        PanelRound[] panelControlesCancion = {panelReiniciarCancion, panelPauseCancion, panelSubirCancion, panelPlayCancion};
+        PanelRound[] panelControlesCancion = {panelConsultarInfo, panelReiniciarCancion, panelPauseCancion, panelSubirCancion, panelPlayCancion};
 
         for (int i = 0; i < controlesCancion.length; i++) {
             final int index = i; // Usa el índice directamente para evitar confusión
@@ -194,6 +205,19 @@ public class PrincipalSampler extends javax.swing.JFrame {
                 label_TituloCancion
         );
 
+        //Control de Volumen de la Cancion
+        sliderVolumenCancion.setMinorTickSpacing(10);
+        sliderVolumenCancion.setMajorTickSpacing(20);
+        sliderVolumenCancion.setPaintTicks(true);
+        sliderVolumenCancion.setValue(100); // Volumen inicial al 100%
+
+        sliderVolumenCancion.addChangeListener(evt -> {
+            int volumeValue = sliderVolumenCancion.getValue(); // Obtiene el valor del slider
+            musicPlayer.adjustSongVolume(volumeValue);        // Ajusta el volumen de la canción
+        });
+
+        // Llama a la función para buscar puertos COM
+        detectarPuertosCOM();
     }
 
     // Método para ajustar el volumen de un pad específico cuando el slider cambia
@@ -251,7 +275,6 @@ public class PrincipalSampler extends javax.swing.JFrame {
                 i++;
             }
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "Error al cargar los sonidos.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -381,6 +404,181 @@ public class PrincipalSampler extends javax.swing.JFrame {
         }
     }
 
+    private void detectarPuertosCOM() {
+        // Obtiene los puertos COM disponibles
+        SerialPort[] puertos = SerialPort.getCommPorts();
+
+        // Limpia el ComboBox (en caso de que lo llames varias veces)
+        comboBoxCOM.removeAllItems();
+
+        // Añade los nombres de los puertos al ComboBox
+        for (SerialPort puerto : puertos) {
+            comboBoxCOM.addItem(puerto.getSystemPortName()); // Ejemplo: "COM3"
+        }
+
+        // Si no hay puertos disponibles, muestra un mensaje
+        if (comboBoxCOM.getItemCount() == 0) {
+            comboBoxCOM.addItem("No hay puertos disponibles");
+        }
+    }
+
+    private void conectarPuerto() {
+        String puertoSeleccionado = (String) comboBoxCOM.getSelectedItem();
+
+        if (puertoSeleccionado == null || puertoSeleccionado.equals("No hay puertos disponibles")) {
+            JOptionPane.showMessageDialog(this, "Selecciona un puerto válido.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (puerto != null && puerto.isOpen()) {
+            JOptionPane.showMessageDialog(this, "El puerto ya está conectado.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        puerto = SerialPort.getCommPort(puertoSeleccionado);
+        puerto.setComPortParameters(9600, 8, SerialPort.ONE_STOP_BIT, SerialPort.NO_PARITY);
+        puerto.setComPortTimeouts(SerialPort.TIMEOUT_READ_SEMI_BLOCKING, 0, 0);
+
+        if (puerto.openPort()) {
+            JOptionPane.showMessageDialog(this, "Conexión exitosa con " + puertoSeleccionado, "Conectado", JOptionPane.INFORMATION_MESSAGE);
+            actualizarIndicadorEstado(true);
+
+            // Iniciar lectura de datos
+            iniciarLecturaDatos();
+        } else {
+            JOptionPane.showMessageDialog(this, "No se pudo conectar al puerto " + puertoSeleccionado, "Error", JOptionPane.ERROR_MESSAGE);
+            actualizarIndicadorEstado(false);
+        }
+    }
+
+    private void desconectarPuerto(SerialPort puerto) {
+        if (puerto != null && puerto.isOpen()) {
+            puerto.closePort();
+            JOptionPane.showMessageDialog(this, "Puerto desconectado.", "Desconectado", JOptionPane.INFORMATION_MESSAGE);
+            actualizarIndicadorEstado(false);
+
+            // Detener hilo de lectura
+            if (lecturaHilo != null && lecturaHilo.isAlive()) {
+                lecturaHilo.interrupt();
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "No hay un puerto conectado.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void actualizarIndicadorEstado(boolean conectado) {
+        if (conectado) {
+            labelEstado.setText("Estado: Conectado");
+            labelEstado.setForeground(Color.GREEN);
+        } else {
+            labelEstado.setText("Estado: Desconectado");
+            labelEstado.setForeground(Color.RED);
+        }
+    }
+
+    private void iniciarLecturaDatos() {
+        lecturaHilo = new Thread(() -> {
+            try (Scanner serialScanner = new Scanner(puerto.getInputStream())) {
+                while (!Thread.currentThread().isInterrupted() && serialScanner.hasNextLine()) {
+                    String linea = serialScanner.nextLine();
+                    System.out.println("Mensaje recibido: " + linea);
+
+                    try {
+                        // Verifica si el mensaje contiene "Note On"
+                        if (linea.contains("Note On")) {
+                            String[] partes = linea.split(" "); // Dividimos por espacios
+                            int nota = Integer.parseInt(partes[5]); // Extraer la nota
+                            int velocidad = Integer.parseInt(partes[8]); // Extraer la velocidad
+
+                            // Procesar la nota si la velocidad es mayor a 5
+                            if (velocidad > 5) {
+                                procesarNotaMidi(nota, velocidad);
+                            }
+                        }
+                    } catch (NumberFormatException | ArrayIndexOutOfBoundsException ex) {
+                        System.err.println("Error al procesar mensaje MIDI: " + ex.getMessage());
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+        lecturaHilo.start();
+    }
+
+    private void procesarNotaMidi(int nota, int velocidad) {
+        // Verificar que la velocidad sea mayor a 5 para activar el pad
+        if (velocidad > 5) {
+            // Mapeo de las notas a los pads: 36 -> Pad 1, 38 -> Pad 2, etc.
+            switch (nota) {
+                case 36:
+                    activarPad(0); // Pad 1
+                    break;
+                case 38:
+                    activarPad(1); // Pad 2
+                    break;
+                case 40:
+                    activarPad(2); // Pad 3
+                    break;
+                case 42:
+                    activarPad(3); // Pad 4
+                    break;
+                case 44:
+                    activarPad(4); // Pad 5
+                    break;
+                case 46:
+                    activarPad(5); // Pad 6
+                    break;
+                default:
+                    break; // Si no es ninguna de las notas relevantes, no hacemos nada
+            }
+        }
+    }
+
+    // Método para activar un pad (cambiar su color y reproducir el sonido)
+    private void activarPad(int padIndex) {
+        // Comprobamos si el color ya está oscuro para evitar oscurecerlo varias veces
+        if (noteIsOn[padIndex]) {
+            return;  // Si la nota ya está activada, no hacemos nada más
+        }
+
+        // Cambiar color del panel del pad (más oscuro temporalmente)
+        Color originalColor = padPanels[padIndex].getBackground();
+        padPanels[padIndex].setBackground(originalColor.darker());  // Cambia el color a más oscuro
+
+        // Reproducir el sonido asociado al pad
+        try {
+            playAudio(padIndex); // Reproduce el sonido correspondiente
+        } catch (IOException ex) {
+            java.util.logging.Logger.getLogger(PrincipalSampler.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+
+        // Marca que el pad está activado y restauramos el color solo después de un pequeño retardo
+        noteIsOn[padIndex] = true;
+
+        // Restaurar al color original inmediatamente después de un pequeño retardo
+        new Thread(() -> {
+            try {
+                Thread.sleep(200);  // Tiempo de retardo, puedes ajustarlo según necesites
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            SwingUtilities.invokeLater(() -> {
+                // Restaurar el color original del panel del pad
+                padPanels[padIndex].setBackground(originalColor);
+                noteIsOn[padIndex] = false;  // Marca que el pad ha dejado de estar activado
+            });
+        }).start();
+    }
+
+// Método para desactivar un pad (restaurar su color a su estado original)
+    private void desactivarPad(int padIndex) {
+        // Cambiar el color del panel de vuelta al original (cuando ya no está activado)
+        Color originalColor = padPanels[padIndex].getBackground().brighter();
+        padPanels[padIndex].setBackground(originalColor);
+        noteIsOn[padIndex] = false;  // Marca el pad como desactivado
+    }
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -405,6 +603,8 @@ public class PrincipalSampler extends javax.swing.JFrame {
         panelPrincipal_Dos = new interfaceSampler.PanelRound();
         panelHeaderPads = new interfaceSampler.PanelRound();
         labelTitulo_PADS = new javax.swing.JLabel();
+        panelConsultarInfo = new interfaceSampler.PanelRound();
+        consultarInfo = new javax.swing.JLabel();
         jSeparator1 = new javax.swing.JSeparator();
         labelPerfil_Seleccionado = new javax.swing.JLabel();
         padSound1 = new interfaceSampler.PanelRound();
@@ -477,10 +677,12 @@ public class PrincipalSampler extends javax.swing.JFrame {
         botonEliminarSonido_Pad66 = new interfaceSampler.PanelRound();
         label_EliminarSonido6 = new javax.swing.JLabel();
         panelPrincipal_Cuatro = new interfaceSampler.PanelRound();
-        label_VolPaneles = new javax.swing.JLabel();
-        sliderVolumenPaneles = new javax.swing.JSlider();
-        label_VolCancion = new javax.swing.JLabel();
-        sliderVolumenCancion = new javax.swing.JSlider();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        comboBoxCOM = new javax.swing.JComboBox<>();
+        jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
+        labelEstado = new javax.swing.JLabel();
         panelPrincipal_Cinco = new interfaceSampler.PanelRound();
         label_TituloCancion = new javax.swing.JLabel();
         label_MusicTimeFinal = new javax.swing.JLabel();
@@ -494,6 +696,7 @@ public class PrincipalSampler extends javax.swing.JFrame {
         subirCancion = new javax.swing.JLabel();
         panelPlayCancion = new interfaceSampler.PanelRound();
         playCancion = new javax.swing.JLabel();
+        sliderVolumenCancion = new javax.swing.JSlider();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("PadLand");
@@ -758,7 +961,7 @@ public class PrincipalSampler extends javax.swing.JFrame {
                 .addContainerGap(29, Short.MAX_VALUE))
         );
 
-        bg.add(panelPrincipal_Uno, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 50, 190, 412));
+        bg.add(panelPrincipal_Uno, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 20, 190, 412));
 
         panelPrincipal_Dos.setBackground(new java.awt.Color(18, 18, 18));
         panelPrincipal_Dos.setRoundBottomLeft(25);
@@ -776,6 +979,33 @@ public class PrincipalSampler extends javax.swing.JFrame {
         labelTitulo_PADS.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         labelTitulo_PADS.setText("PADS");
 
+        panelConsultarInfo.setBackground(new java.awt.Color(204, 204, 204));
+        panelConsultarInfo.setRoundBottomLeft(40);
+        panelConsultarInfo.setRoundBottomRight(40);
+        panelConsultarInfo.setRoundTopLeft(40);
+        panelConsultarInfo.setRoundTopRight(40);
+
+        consultarInfo.setFont(new java.awt.Font("Roboto Black", 1, 18)); // NOI18N
+        consultarInfo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        consultarInfo.setText("i");
+        consultarInfo.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        consultarInfo.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                consultarInfoMouseClicked(evt);
+            }
+        });
+
+        javax.swing.GroupLayout panelConsultarInfoLayout = new javax.swing.GroupLayout(panelConsultarInfo);
+        panelConsultarInfo.setLayout(panelConsultarInfoLayout);
+        panelConsultarInfoLayout.setHorizontalGroup(
+            panelConsultarInfoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(consultarInfo, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE)
+        );
+        panelConsultarInfoLayout.setVerticalGroup(
+            panelConsultarInfoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(consultarInfo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+
         javax.swing.GroupLayout panelHeaderPadsLayout = new javax.swing.GroupLayout(panelHeaderPads);
         panelHeaderPads.setLayout(panelHeaderPadsLayout);
         panelHeaderPadsLayout.setHorizontalGroup(
@@ -783,13 +1013,19 @@ public class PrincipalSampler extends javax.swing.JFrame {
             .addGroup(panelHeaderPadsLayout.createSequentialGroup()
                 .addGap(24, 24, 24)
                 .addComponent(labelTitulo_PADS, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(panelConsultarInfo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(23, 23, 23))
         );
         panelHeaderPadsLayout.setVerticalGroup(
             panelHeaderPadsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelHeaderPadsLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(labelTitulo_PADS, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(panelHeaderPadsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(panelConsultarInfo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(panelHeaderPadsLayout.createSequentialGroup()
+                        .addComponent(labelTitulo_PADS)
+                        .addGap(0, 1, Short.MAX_VALUE)))
                 .addContainerGap())
         );
 
@@ -1012,7 +1248,7 @@ public class PrincipalSampler extends javax.swing.JFrame {
             panelPrincipal_DosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelPrincipal_DosLayout.createSequentialGroup()
                 .addComponent(panelHeaderPads, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(54, 54, 54)
+                .addGap(37, 37, 37)
                 .addGroup(panelPrincipal_DosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(padSound1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(padSound3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1022,7 +1258,7 @@ public class PrincipalSampler extends javax.swing.JFrame {
                     .addComponent(label_NumeroDelPAD_1)
                     .addComponent(label_NumeroDelPAD_3)
                     .addComponent(label_NumeroDelPAD_5))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 40, Short.MAX_VALUE)
                 .addGroup(panelPrincipal_DosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(padSound6, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(padSound2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1039,9 +1275,10 @@ public class PrincipalSampler extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
-        bg.add(panelPrincipal_Dos, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 50, 410, 412));
+        bg.add(panelPrincipal_Dos, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 20, 410, 412));
 
         panelPrincipal_Tres.setBackground(new java.awt.Color(18, 18, 18));
+        panelPrincipal_Tres.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.LOWERED, java.awt.Color.gray, java.awt.Color.gray, java.awt.Color.darkGray, java.awt.Color.darkGray));
 
         panelHeaderPads1.setBackground(new java.awt.Color(20, 20, 20));
         panelHeaderPads1.setRoundBottomLeft(10);
@@ -1702,7 +1939,7 @@ public class PrincipalSampler extends javax.swing.JFrame {
                             .addComponent(botonEliminarSonido_Pad66, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(ControlVolumen6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(33, Short.MAX_VALUE))
+                .addContainerGap(25, Short.MAX_VALUE))
         );
         panelPrincipal_TresLayout.setVerticalGroup(
             panelPrincipal_TresLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1771,54 +2008,89 @@ public class PrincipalSampler extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        bg.add(panelPrincipal_Tres, new org.netbeans.lib.awtextra.AbsoluteConstraints(660, 50, 250, 580));
+        bg.add(panelPrincipal_Tres, new org.netbeans.lib.awtextra.AbsoluteConstraints(660, 20, 250, 600));
 
         panelPrincipal_Cuatro.setBackground(new java.awt.Color(18, 18, 18));
+        panelPrincipal_Cuatro.setToolTipText("");
         panelPrincipal_Cuatro.setRoundBottomLeft(25);
         panelPrincipal_Cuatro.setRoundBottomRight(25);
         panelPrincipal_Cuatro.setRoundTopLeft(25);
         panelPrincipal_Cuatro.setRoundTopRight(25);
 
-        label_VolPaneles.setBackground(new java.awt.Color(210, 210, 210));
-        label_VolPaneles.setFont(new java.awt.Font("Roboto Black", 0, 15)); // NOI18N
-        label_VolPaneles.setForeground(new java.awt.Color(230, 230, 230));
-        label_VolPaneles.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        label_VolPaneles.setText("Vol. General de Paneles");
+        jLabel1.setFont(new java.awt.Font("Roboto Black", 1, 14)); // NOI18N
+        jLabel1.setForeground(new java.awt.Color(204, 204, 204));
+        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel1.setText("Configuración MIDI");
 
-        label_VolCancion.setBackground(new java.awt.Color(210, 210, 210));
-        label_VolCancion.setFont(new java.awt.Font("Roboto Black", 0, 15)); // NOI18N
-        label_VolCancion.setForeground(new java.awt.Color(230, 230, 230));
-        label_VolCancion.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        label_VolCancion.setText("Vol. Cancion");
+        jLabel2.setFont(new java.awt.Font("Roboto", 3, 12)); // NOI18N
+        jLabel2.setForeground(new java.awt.Color(204, 204, 204));
+        jLabel2.setText("Puerto COM:");
+
+        comboBoxCOM.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+
+        jButton1.setBackground(new java.awt.Color(153, 255, 153));
+        jButton1.setFont(new java.awt.Font("Roboto", 0, 10)); // NOI18N
+        jButton1.setForeground(new java.awt.Color(0, 0, 0));
+        jButton1.setText("Conectar");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        jButton2.setBackground(new java.awt.Color(255, 51, 51));
+        jButton2.setFont(new java.awt.Font("Roboto Black", 0, 10)); // NOI18N
+        jButton2.setForeground(new java.awt.Color(255, 255, 255));
+        jButton2.setText("Desconectar");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+
+        labelEstado.setFont(new java.awt.Font("Roboto", 3, 12)); // NOI18N
+        labelEstado.setForeground(new java.awt.Color(204, 204, 204));
+        labelEstado.setText("Estado: Desconectado");
 
         javax.swing.GroupLayout panelPrincipal_CuatroLayout = new javax.swing.GroupLayout(panelPrincipal_Cuatro);
         panelPrincipal_Cuatro.setLayout(panelPrincipal_CuatroLayout);
         panelPrincipal_CuatroLayout.setHorizontalGroup(
             panelPrincipal_CuatroLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelPrincipal_CuatroLayout.createSequentialGroup()
-                .addGap(15, 15, 15)
-                .addGroup(panelPrincipal_CuatroLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(label_VolPaneles, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(sliderVolumenPaneles, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                    .addComponent(label_VolCancion, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(sliderVolumenCancion, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                .addContainerGap(14, Short.MAX_VALUE))
+                .addContainerGap()
+                .addGroup(panelPrincipal_CuatroLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(labelEstado, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(panelPrincipal_CuatroLayout.createSequentialGroup()
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboBoxCOM, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(panelPrincipal_CuatroLayout.createSequentialGroup()
+                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
         );
         panelPrincipal_CuatroLayout.setVerticalGroup(
             panelPrincipal_CuatroLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelPrincipal_CuatroLayout.createSequentialGroup()
-                .addGap(23, 23, 23)
-                .addComponent(label_VolPaneles)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(sliderVolumenPaneles, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap()
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(label_VolCancion)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 11, Short.MAX_VALUE)
-                .addComponent(sliderVolumenCancion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addGroup(panelPrincipal_CuatroLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(comboBoxCOM, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(panelPrincipal_CuatroLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(labelEstado)
+                .addContainerGap(34, Short.MAX_VALUE))
         );
 
-        bg.add(panelPrincipal_Cuatro, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 480, 190, 150));
+        bg.add(panelPrincipal_Cuatro, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 450, 190, 170));
 
         panelPrincipal_Cinco.setBackground(new java.awt.Color(18, 18, 18));
         panelPrincipal_Cinco.setRoundBottomLeft(25);
@@ -1827,7 +2099,7 @@ public class PrincipalSampler extends javax.swing.JFrame {
         panelPrincipal_Cinco.setRoundTopRight(25);
 
         label_TituloCancion.setBackground(new java.awt.Color(210, 210, 210));
-        label_TituloCancion.setFont(new java.awt.Font("Roboto", 1, 18)); // NOI18N
+        label_TituloCancion.setFont(new java.awt.Font("Roboto", 1, 24)); // NOI18N
         label_TituloCancion.setForeground(new java.awt.Color(210, 210, 210));
         label_TituloCancion.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         label_TituloCancion.setText("<html>Song Title</html>");
@@ -1855,9 +2127,6 @@ public class PrincipalSampler extends javax.swing.JFrame {
             }
             public void mousePressed(java.awt.event.MouseEvent evt) {
                 barraDeProgresoCancionMousePressed(evt);
-            }
-            public void mouseReleased(java.awt.event.MouseEvent evt) {
-                barraDeProgresoCancionMouseReleased(evt);
             }
         });
 
@@ -1970,22 +2239,29 @@ public class PrincipalSampler extends javax.swing.JFrame {
         panelPlayCancion.setLayout(panelPlayCancionLayout);
         panelPlayCancionLayout.setHorizontalGroup(
             panelPlayCancionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelPlayCancionLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(playCancion, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addComponent(playCancion, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE)
         );
         panelPlayCancionLayout.setVerticalGroup(
             panelPlayCancionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelPlayCancionLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(playCancion, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addComponent(playCancion, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
         javax.swing.GroupLayout panelPrincipal_CincoLayout = new javax.swing.GroupLayout(panelPrincipal_Cinco);
         panelPrincipal_Cinco.setLayout(panelPrincipal_CincoLayout);
         panelPrincipal_CincoLayout.setHorizontalGroup(
             panelPrincipal_CincoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 410, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelPrincipal_CincoLayout.createSequentialGroup()
+                .addContainerGap(20, Short.MAX_VALUE)
+                .addComponent(sliderVolumenCancion, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(45, 45, 45)
+                .addComponent(panelSubirCancion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(panelPlayCancion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(panelPauseCancion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(panelReiniciarCancion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(114, 114, 114))
             .addGroup(panelPrincipal_CincoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(panelPrincipal_CincoLayout.createSequentialGroup()
                     .addGap(0, 0, Short.MAX_VALUE)
@@ -1996,41 +2272,35 @@ public class PrincipalSampler extends javax.swing.JFrame {
                             .addGap(10, 10, 10)
                             .addComponent(barraDeProgresoCancion, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGap(10, 10, 10)
-                            .addComponent(label_MusicTimeFinal))
-                        .addGroup(panelPrincipal_CincoLayout.createSequentialGroup()
-                            .addGap(90, 90, 90)
-                            .addComponent(panelSubirCancion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(20, 20, 20)
-                            .addComponent(panelPlayCancion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(20, 20, 20)
-                            .addComponent(panelPauseCancion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(20, 20, 20)
-                            .addComponent(panelReiniciarCancion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(label_MusicTimeFinal)))
                     .addGap(0, 0, Short.MAX_VALUE)))
         );
         panelPrincipal_CincoLayout.setVerticalGroup(
             panelPrincipal_CincoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 150, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelPrincipal_CincoLayout.createSequentialGroup()
+                .addContainerGap(124, Short.MAX_VALUE)
+                .addGroup(panelPrincipal_CincoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(sliderVolumenCancion, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(panelSubirCancion, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(panelPlayCancion, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(panelPauseCancion, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(panelReiniciarCancion, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(16, 16, 16))
             .addGroup(panelPrincipal_CincoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(panelPrincipal_CincoLayout.createSequentialGroup()
-                    .addGap(0, 0, Short.MAX_VALUE)
-                    .addComponent(label_TituloCancion, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGap(21, 21, 21)
+                    .addGap(0, 6, Short.MAX_VALUE)
+                    .addComponent(label_TituloCancion, javax.swing.GroupLayout.PREFERRED_SIZE, 56, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                     .addGroup(panelPrincipal_CincoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addComponent(label_MusicTimeInicial, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGroup(panelPrincipal_CincoLayout.createSequentialGroup()
                             .addGap(14, 14, 14)
                             .addComponent(barraDeProgresoCancion, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addComponent(label_MusicTimeFinal, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(panelPrincipal_CincoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(panelSubirCancion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(panelPlayCancion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(panelPauseCancion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(panelReiniciarCancion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGap(0, 0, Short.MAX_VALUE)))
+                    .addGap(0, 62, Short.MAX_VALUE)))
         );
 
-        bg.add(panelPrincipal_Cinco, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 480, 410, 150));
+        bg.add(panelPrincipal_Cinco, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 450, 410, 170));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -2040,9 +2310,7 @@ public class PrincipalSampler extends javax.swing.JFrame {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(bg, javax.swing.GroupLayout.PREFERRED_SIZE, 651, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+            .addComponent(bg, javax.swing.GroupLayout.DEFAULT_SIZE, 634, Short.MAX_VALUE)
         );
 
         pack();
@@ -2123,9 +2391,23 @@ public class PrincipalSampler extends javax.swing.JFrame {
         musicPlayer.pauseMusic(); // Pausa la música al empezar a arrastrar
     }//GEN-LAST:event_barraDeProgresoCancionMousePressed
 
-    private void barraDeProgresoCancionMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_barraDeProgresoCancionMouseReleased
-        musicPlayer.playMusic(); // Reanuda la música al soltar el mouse
-    }//GEN-LAST:event_barraDeProgresoCancionMouseReleased
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        conectarPuerto();
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        desconectarPuerto(puerto);
+    }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void consultarInfoMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_consultarInfoMouseClicked
+        // Mostramos el JOptionPane con la información
+        JOptionPane.showMessageDialog(
+                null,
+                "Los pads no tienen sonidos asignados por defecto. Puedes usar los sonidos disponibles en la carpeta junto al ejecutable.",
+                "Información",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+    }//GEN-LAST:event_consultarInfoMouseClicked
 
     // Método auxiliar para formatear el tiempo
     private String formatTime(long seconds) {
@@ -2199,7 +2481,14 @@ public class PrincipalSampler extends javax.swing.JFrame {
     private interfaceSampler.PanelRound botonSelecccionarSonido_Pad4;
     private interfaceSampler.PanelRound botonSelecccionarSonido_Pad5;
     private interfaceSampler.PanelRound botonSelecccionarSonido_Pad6;
+    private javax.swing.JComboBox<String> comboBoxCOM;
+    private javax.swing.JLabel consultarInfo;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JLabel labelEstado;
     private javax.swing.JLabel labelPadSound1;
     private javax.swing.JLabel labelPadSound2;
     private javax.swing.JLabel labelPadSound3;
@@ -2250,14 +2539,13 @@ public class PrincipalSampler extends javax.swing.JFrame {
     private javax.swing.JLabel label_TituloCancion;
     private javax.swing.JLabel label_TituloGuardar;
     private javax.swing.JLabel label_TituloReestablecer;
-    private javax.swing.JLabel label_VolCancion;
-    private javax.swing.JLabel label_VolPaneles;
     private interfaceSampler.PanelRound padSound1;
     private interfaceSampler.PanelRound padSound2;
     private interfaceSampler.PanelRound padSound3;
     private interfaceSampler.PanelRound padSound4;
     private interfaceSampler.PanelRound padSound5;
     private interfaceSampler.PanelRound padSound6;
+    private interfaceSampler.PanelRound panelConsultarInfo;
     private interfaceSampler.PanelRound panelGuardar;
     private interfaceSampler.PanelRound panelHeaderPads;
     private interfaceSampler.PanelRound panelHeaderPads1;
@@ -2278,7 +2566,6 @@ public class PrincipalSampler extends javax.swing.JFrame {
     private javax.swing.JLabel playCancion;
     private javax.swing.JLabel reiniciarCancion;
     private javax.swing.JSlider sliderVolumenCancion;
-    private javax.swing.JSlider sliderVolumenPaneles;
     private javax.swing.JLabel subirCancion;
     // End of variables declaration//GEN-END:variables
 }

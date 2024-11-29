@@ -18,9 +18,6 @@ public class CustomSliderUI extends BasicSliderUI {
         Graphics2D g2d = (Graphics2D) g.create();
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         
-        // Cambia el color del thumb a un gris oscuro
-        g2d.setColor(new Color(64, 64, 64)); // Color gris oscuro para el thumb
-        
         // Dibuja el thumb visual en las coordenadas calculadas del rectángulo del thumb
         g2d.fillRoundRect(thumbRect.x, thumbRect.y, thumbWidth, thumbHeight, 5, 5);
         
