@@ -21,7 +21,7 @@ Este repositorio contiene una estructura organizada para cada lenguaje que estud
 ### **Java** tiene una estructura más compleja, que incluye:
 - **`Básico-JAVA-SE/`**: Ejercicios y clases sobre Java SE.
 - **`Intermedio-POO/`**: Ejercicios y clases sobre Programación Orientada a Objetos en Java.
-- **`Proyectos/`**: Proyectos realizados en Java, tanto del nivel básico como intermedio.
+- **`Ejercicios/`**: Proyectos realizados en Java, tanto del nivel básico como intermedio.
 
 ## 🔨 **Tecnologías y Herramientas**
 - **Lenguajes utilizados**: C++, CSS, HTML, Java, PSEINT, Python.
@@ -39,3 +39,6 @@ Este repositorio está organizado para ser fácilmente navegable. Para comenzar,
    cd JAVA  # O el lenguaje de tu elección
 
 3. Revisa los ejercicios y clases para profundizar en los conceptos.
+
+## Licencia 🛡️
+Este proyecto está bajo la licencia MIT. Consulta el archivo [LICENSE](LICENSE) para más detalles.
