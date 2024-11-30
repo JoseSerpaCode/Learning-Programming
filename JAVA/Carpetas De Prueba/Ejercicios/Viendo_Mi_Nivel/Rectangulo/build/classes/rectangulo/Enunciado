@@ -1,0 +1,18 @@
+# Ejercicio Medio 1: Cálculo del área y 
+perímetro de un rectángulo
+
+Escribe un programa que permita al 
+usuario ingresar el largo y el ancho 
+de un rectángulo.
+
+Calcula y muestra:
+  - El área del rectángulo.
+  - El perímetro del rectángulo.
+
+Requisitos:
+  - Maneja posibles errores de entrada 
+(como valores no numéricos o negativos).
+
+  - Incluye un menú para que el usuario
+decida si desea realizar otro cálculo 
+o salir.
