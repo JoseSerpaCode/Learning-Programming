@@ -1,0 +1,19 @@
+2. Tipos de datos y operaciones
+
+Crea un programa que:
+
+    [X] Declare una variable para cada tipo de dato primitivo en Java.
+    [X] Asigna un valor inicial a cada una.
+    [X] Imprima los valores asignados junto con su tipo de dato.
+
+- Ejemplo de salida esperada:
+
+byte: 127
+short: 32000
+int: 100000
+long: 5000000000
+float: 3.14
+double: 3.14159265359
+boolean: true
+char: A
+

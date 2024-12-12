@@ -1,0 +1,11 @@
+1. Sintaxis básica y variables
+
+Escribe un programa que:
+
+[X] Declare tres tipos de variables:
+
+    [X] Una variable local (inicializada con un valor dentro de un método).
+    [X] Una variable de instancia (definida fuera de los métodos de la clase).
+    [X] Una variable estática (compartida por todas las instancias de la clase).
+
+[X] Define un método que asigne valores a cada una de las variables y otro método que imprima sus valores.
