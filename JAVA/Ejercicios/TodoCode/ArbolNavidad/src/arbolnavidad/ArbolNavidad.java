@@ -30,13 +30,9 @@ public class ArbolNavidad {
             for (int elementos = 0; elementos <= (fila * 2); elementos++) {
                 if (elementos == 0 || elementos == (fila * 2)) { //Si es el primer elemento del arbol o el último, se pinta como un *
                     System.out.print("*");
-                } else { //El resto de elementos se pintan de forma aleatoria entre: #, +, o, x, *
-                    char decoracion;
-                    //Si el elemento no se encuentra entre los deseados, se vuelve a generar otro de forma aleatoria
-                    do {
-                        decoracion = (char) (rnd.nextInt(121) + 35);
-                    } while (CaracteresDeseados.indexOf(decoracion) < 0);
-
+                } else {
+                    //Generar de forma aleatoria la decoracion entre los elementos: #, +, o, x, *
+                    char decoracion = CaracteresDeseados.charAt(rnd.nextInt(CaracteresDeseados.length()));
                     System.out.print(decoracion);
                 }
             }

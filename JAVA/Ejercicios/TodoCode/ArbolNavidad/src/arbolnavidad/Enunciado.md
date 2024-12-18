@@ -25,15 +25,6 @@ Escribe un programa en **Java** que genere un **árbol de Navidad decorado** uti
 
 Para una altura de **5**, el programa podría generar el siguiente árbol:
 
-    *
-   *x*
-  *#*#*
- *+*o*+*
-*#*#*#*#*
-   |||
-   |||
-
-
 ---
 
 ## **Restricciones**
