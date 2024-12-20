@@ -3,9 +3,9 @@ package tablanotas;
 import java.util.Scanner;
 
 public class TablaNotas {
-    
+
     // Matriz para almacenar las notas y los promedios
-    static double[][] tablaNotas = new double [4][4];
+    static double[][] tablaNotas = new double[4][4];
 
     public static void main(String[] args) {
         // Llama al método para ingresar las notas de los estudiantes
@@ -14,29 +14,28 @@ public class TablaNotas {
         // Llama al método para mostrar las notas y los promedios
         mostrarNotas();
     }
-    
+
     public static void ingresarNotas() {
-        // Crear Scanner para recibir entrada del usuario
-        Scanner userInput = new Scanner(System.in);
-        
-        // Recorre cada fila (estudiante)
-        for (int fila = 0; fila < 4; fila++) {
-            System.out.println("- Notas del estudiante " + (fila + 1));
-            // Recorre las tres columnas de notas
-            for (int columna = 0; columna < 3; columna++) {
-                tablaNotas[fila][columna] = validarNota(userInput, "Escriba la nota #" + (columna + 1) + ": ");
+        // Usar try-with-resources para cerrar automáticamente el Scanner
+        try (Scanner userInput = new Scanner(System.in)) {
+            // Recorre cada fila (estudiante)
+            for (int fila = 0; fila < 4; fila++) {
+                System.out.println("- Notas del estudiante " + (fila + 1));
+
+                // Recorre las tres columnas de notas
+                for (int columna = 0; columna < 3; columna++) {
+                    String mensaje = "Escriba la nota #" + (columna + 1) + ": ";
+                    tablaNotas[fila][columna] = validarNota(userInput, mensaje);
+                }
             }
-        }
-        
-        // Cierra el Scanner después de usarlo
-        userInput.close();
+        } // El Scanner se cerrará automáticamente aquí
     }
-    
+
     public static void mostrarNotas() {
         // Recorre cada fila (estudiante)
         for (int fila = 0; fila < 4; fila++) {
             double sumaNotas = 0; // Variable para acumular las notas del estudiante
-            
+
             System.out.println("- Notas del estudiante " + (fila + 1) + " son:");
             // Recorre las tres columnas de notas
             for (int columna = 0; columna < 3; columna++) {
@@ -49,7 +48,7 @@ public class TablaNotas {
             System.out.printf("El promedio del estudiante es: %.2f%n", tablaNotas[fila][3]);
         }
     }
-    
+
     public static double validarNota(Scanner userInput, String mensaje) {
         while (true) {
             System.out.print(mensaje);
