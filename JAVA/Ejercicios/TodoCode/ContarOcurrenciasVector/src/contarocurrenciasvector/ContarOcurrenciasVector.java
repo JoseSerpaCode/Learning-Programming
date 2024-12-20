@@ -9,13 +9,13 @@ public class ContarOcurrenciasVector {
         Scanner userInput = new Scanner(System.in);
         int saveNumberTree = 0;
         
-        int[] numInt = new int [15];
+        int[] numIntVector = new int [15];
         
-        for (int index = 0; index < numInt.length; index++) {
+        for (int index = 0; index < numIntVector.length; index++) {
             System.out.print("Enter a number in position " + index + ": ");
-            int readNum = userInput.nextInt();
+            numIntVector[index] = userInput.nextInt();
             
-            if (readNum == 3) {
+            if (numIntVector[index] == 3) {
                 saveNumberTree += 1;
             }
         }
