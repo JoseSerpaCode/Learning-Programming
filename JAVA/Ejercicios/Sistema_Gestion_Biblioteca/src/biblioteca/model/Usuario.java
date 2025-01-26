@@ -1,11 +1,10 @@
 package biblioteca.model;
 
 public class Usuario extends Persona{
-    private String librosPrestados;
+    private String librosPrestados = "";
 
-    public Usuario(String librosPrestados, int idPersona, String nombre, String email) {
-        super(idPersona, nombre, email);
-        this.librosPrestados = librosPrestados;
+    public Usuario(int idPersona, String nombre, String email) {
+        super(0, nombre, email);
     }
 
     public String getLibrosPrestados() {

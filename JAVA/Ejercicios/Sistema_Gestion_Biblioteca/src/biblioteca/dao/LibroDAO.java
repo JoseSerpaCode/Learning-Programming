@@ -6,7 +6,7 @@ import java.sql.*;
 public class LibroDAO {
 
     public void agregarLibro(Connection conn, Libro libro) {
-        String sql = "INSERT INTO libro (titulo, autor, anoPublicacion, disponible) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO Libro (titulo, autor, anoPublicacion, disponible) VALUES (?, ?, ?, ?)";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, libro.getTitulo());
@@ -21,7 +21,7 @@ public class LibroDAO {
     }
 
     public void actualizarLibro(Connection conn, Libro libro) {
-        String sql = "UPDATE libro SET titulo = ?, autor = ?, anoPublicacion = ?, disponible = ? WHERE id_libro = ?";
+        String sql = "UPDATE Libro SET titulo = ?, autor = ?, anoPublicacion = ?, disponible = ? WHERE id_libro = ?";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, libro.getTitulo());
@@ -37,7 +37,7 @@ public class LibroDAO {
     }
 
     public void eliminarLibro(Connection conn, Libro libro) {
-        String sql = "DELETE FROM libro WHERE id_libro = ?";
+        String sql = "DELETE FROM Libro WHERE id_libro = ?";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, libro.getIdLibro());
@@ -49,7 +49,7 @@ public class LibroDAO {
     }
 
     public void listarLibro(Connection conn, Libro libro) {
-        String sql = "SELECT id_libro, titulo, autor, anoPublicacion, disponible FROM libro WHERE id_libro = ?";
+        String sql = "SELECT id_libro, titulo, autor, anoPublicacion, disponible FROM Libro WHERE id_libro = ?";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, libro.getIdLibro());
@@ -65,7 +65,7 @@ public class LibroDAO {
     }
 
     public void listarLibros(Connection conn) {
-        String sql = "SELECT id_libro, titulo, autor, anoPublicacion, disponible FROM libro";
+        String sql = "SELECT id_libro, titulo, autor, anoPublicacion, disponible FROM Libro";
 
         try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {

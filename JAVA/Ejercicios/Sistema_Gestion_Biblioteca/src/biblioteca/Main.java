@@ -1,6 +1,7 @@
 package biblioteca;
 
 import biblioteca.menus.MenuLibro;
+import biblioteca.menus.MenuUsuario;
 import biblioteca.util.DatabaseManager;
 import biblioteca.util.ValidarOpcion;
 import java.sql.*;
@@ -30,6 +31,10 @@ public class Main {
             switch (op) {
                 case 1 -> {
                     MenuLibro menuLibro = new MenuLibro(conn);
+                }
+                
+                case 3 -> {
+                    MenuUsuario menuUsuario = new MenuUsuario(conn);
                 }
                 case 4 -> { 
                     bandera = false;

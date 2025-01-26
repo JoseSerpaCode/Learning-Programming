@@ -62,6 +62,7 @@ public final class MenuLibro {
     }
 
     private Libro agregarLibro(Scanner scanner) {
+        scanner.nextLine();
         System.out.print("Titulo: ");
         String titulo = scanner.nextLine();
         System.out.print("Autor: ");
@@ -91,6 +92,7 @@ public final class MenuLibro {
     }
 
     private Libro solicitarLibro(Scanner scanner) {
+        scanner.nextLine();
         System.out.print("Ingrese el ID del libro: ");
         int idLibro = validarOpcion.isNumber(scanner, 1, 1000);
         return new Libro(idLibro);
