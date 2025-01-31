@@ -1,6 +1,7 @@
 package arraylists;
 
-import java.util.LinkedList;
+import otros.Persona;
+
 import java.util.List;
 import java.util.ArrayList;
 
