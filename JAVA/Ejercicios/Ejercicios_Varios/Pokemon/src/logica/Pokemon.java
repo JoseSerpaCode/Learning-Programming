@@ -29,7 +29,7 @@ public abstract class Pokemon {
     }
     
     protected abstract void atacarPlacaje();
-    protected abstract void atacarArañazo();
+    protected abstract void atacarAranazo();
     protected abstract void atacarMordisco();
 
     public int getNum_pokedex() {

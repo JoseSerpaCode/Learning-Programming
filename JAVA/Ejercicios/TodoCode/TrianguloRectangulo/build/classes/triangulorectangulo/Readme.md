@@ -22,7 +22,7 @@ Escribe un programa en **Java** que genere un triángulo rectángulo "hueco" uti
 ## **Ejemplo de salida**
 Para una altura de **10**, el programa debe mostrar:
 
-
+![image](https://github.com/user-attachments/assets/96bf35a1-65b6-44dc-b9e0-8600420c09e7)
 
 ---
 

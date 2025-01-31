@@ -12,7 +12,7 @@ public class Pikachu extends Pokemon implements IElectrico{
     }
 
     @Override
-    protected void atacarArañazo() {
+    protected void atacarAranazo() {
         System.out.println("Hola! Soy " + getNombrePokemon() + " y estoy utilizando atacarArañazo");
     }
 
