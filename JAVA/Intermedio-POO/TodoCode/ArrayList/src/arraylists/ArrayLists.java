@@ -15,5 +15,11 @@ public class ArrayLists {
         for (Persona perso : lista){
             System.out.println(perso.getNombre());
         }
+
+        lista.remove(1);
+
+        for (Persona perso : lista){
+            System.out.println(perso.getNombre()); //Ya no aparece 'Andres'
+        }
     }
 }

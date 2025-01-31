@@ -16,8 +16,28 @@ public class LinkedLists {
         //Agregar al principio
         lista.add(0, new Persona(3, "Jose", 90));
 
-        for (Persona persona : lista){
+        System.out.println(lista);
+
+        for (Persona persona : lista) {
             System.out.println(persona.getNombre());
+            System.out.println("-".repeat(50));
         }
+
+        /*
+        Eliminar un elemento en una LinkedList
+        lista.remove(1);
+        lista.remove("");
+        lista.clear();  // Elimina todos los elementos
+
+        --
+
+        numbers.removeFirst(); // Elimina el primer elemento
+        numbers.removeLast();  // Elimina el último elemento
+         */
+
+        lista.remove(0);
+        lista.removeIf(persona -> persona.getNombre().equals("Juan"));
+        System.out.println(lista);
     }
+
 }
