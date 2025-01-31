@@ -1,4 +1,4 @@
-package arraylists;
+package otros;
 
 public class Persona {
     private int num;
