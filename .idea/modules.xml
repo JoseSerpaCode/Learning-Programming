@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Basico-JAVA-SE/#13 Ejercicios/#13 Ejercicios.iml" filepath="$PROJECT_DIR$/JAVA/Basico-JAVA-SE/#13 Ejercicios/#13 Ejercicios.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Basico-JAVA-SE/#14 Cadenas de caracteres/#14 Cadenas de caracteres.iml" filepath="$PROJECT_DIR$/JAVA/Basico-JAVA-SE/#14 Cadenas de caracteres/#14 Cadenas de caracteres.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Basico-JAVA-SE/#17 Matrices/#17 Matrices.iml" filepath="$PROJECT_DIR$/JAVA/Basico-JAVA-SE/#17 Matrices/#17 Matrices.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Basico-JAVA-SE/#18 Interfaz/#18 Interfaz.iml" filepath="$PROJECT_DIR$/JAVA/Basico-JAVA-SE/#18 Interfaz/#18 Interfaz.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Basico-JAVA-SE/#20 Swing/#20 Swing.iml" filepath="$PROJECT_DIR$/JAVA/Basico-JAVA-SE/#20 Swing/#20 Swing.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Basico-JAVA-SE/#25 OperadorTernario/#25 OperadorTernario.iml" filepath="$PROJECT_DIR$/JAVA/Basico-JAVA-SE/#25 OperadorTernario/#25 OperadorTernario.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/01_Suma/01_Suma.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/01_Suma/01_Suma.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/02_AreaRectangulo/02_AreaRectangulo.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/02_AreaRectangulo/02_AreaRectangulo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/03.1_LavadorasSamsung/03.1_LavadorasSamsung.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/03.1_LavadorasSamsung/03.1_LavadorasSamsung.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/03_Lavadoras/03_Lavadoras.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/03_Lavadoras/03_Lavadoras.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/04_ModificadorPorDefecto/04_ModificadorPorDefecto.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/04_ModificadorPorDefecto/04_ModificadorPorDefecto.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/05_ModificadorPublic/05_ModificadorPublic.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/05_ModificadorPublic/05_ModificadorPublic.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/06_ModificadorPrivate/06_ModificadorPrivate.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/06_ModificadorPrivate/06_ModificadorPrivate.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/07_ModificadorProtected/07_ModificadorProtected.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/07_ModificadorProtected/07_ModificadorProtected.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/08_Herencia/08_Herencia.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/08_Herencia/08_Herencia.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/09_Polimorfismo/09_Polimorfismo.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/09_Polimorfismo/09_Polimorfismo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/10_Palabra_Super/10_Palabra_Super.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/10_Palabra_Super/10_Palabra_Super.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/11_Ambito_Variables/11_Ambito_Variables.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/11_Ambito_Variables/11_Ambito_Variables.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/12_CajeroAutomatico/12_CajeroAutomatico.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/12_CajeroAutomatico/12_CajeroAutomatico.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/TodoCode/AgendaElectronica/AgendaElectronica.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/TodoCode/AgendaElectronica/AgendaElectronica.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/TodoCode/AlmacenandoNombres/AlmacenandoNombres.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/TodoCode/AlmacenandoNombres/AlmacenandoNombres.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/Analizador/Analizador.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/Analizador/Analizador.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/BD/App/App.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/BD/App/App.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/TodoCode/ArbolNavidad/ArbolNavidad.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/TodoCode/ArbolNavidad/ArbolNavidad.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/BD_Alumnos/BD_Alumnos.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/BD_Alumnos/BD_Alumnos.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/BD/BD_Practice_Connection/BD_Practice_Connection.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/BD/BD_Practice_Connection/BD_Practice_Connection.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/BasicSyntax/BasicSyntax.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/BasicSyntax/BasicSyntax.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Basico-JAVA-SE/Basico-JAVA-SE.iml" filepath="$PROJECT_DIR$/JAVA/Basico-JAVA-SE/Basico-JAVA-SE.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/Calculadora_SobreEscriutra&amp;SobreCarga/Calculadora_SobreEscriutra&amp;SobreCarga.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/Calculadora_SobreEscriutra&amp;SobreCarga/Calculadora_SobreEscriutra&amp;SobreCarga.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/CalcularSueldo/CalcularSueldo.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/CalcularSueldo/CalcularSueldo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/TodoCode/CargarMatrizConNumeros5/CargarMatrizConNumeros5.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/TodoCode/CargarMatrizConNumeros5/CargarMatrizConNumeros5.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/MoureDevEjercicios/Challenges/Challenges.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/MoureDevEjercicios/Challenges/Challenges.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/ClaseGraphics/ClaseGraphics.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/ClaseGraphics/ClaseGraphics.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/ClaseMath/ClaseMath.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/ClaseMath/ClaseMath.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/TodoCode/Clases&amp;Metodos/Clases&amp;Metodos.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/TodoCode/Clases&amp;Metodos/Clases&amp;Metodos.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Basico-JAVA-SE/CocaColaCompany/CocaColaCompany.iml" filepath="$PROJECT_DIR$/JAVA/Basico-JAVA-SE/CocaColaCompany/CocaColaCompany.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/ConcatenacionSimple/ConcatenacionSimple.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/ConcatenacionSimple/ConcatenacionSimple.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/Constructor/Constructor.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/Constructor/Constructor.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/TodoCode/ContarOcurrenciasVector/ContarOcurrenciasVector.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/TodoCode/ContarOcurrenciasVector/ContarOcurrenciasVector.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/ContarVocales/ContarVocales.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/ContarVocales/ContarVocales.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/Cursos-Programacion.iml" filepath="$PROJECT_DIR$/.idea/Cursos-Programacion.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/DataTypes/DataTypes.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/DataTypes/DataTypes.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/TodoCode/DesafioNavidad/DesafioNavidad.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/TodoCode/DesafioNavidad/DesafioNavidad.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/Arrays/Ejercicio de Matrices/Ejercicio de Matrices.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/Arrays/Ejercicio de Matrices/Ejercicio de Matrices.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/Arrays/Ejercicio de vectores/Ejercicio de vectores.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/Arrays/Ejercicio de vectores/Ejercicio de vectores.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/EjerciciosLoops/EjerciciosLoops.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/EjerciciosLoops/EjerciciosLoops.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/Ejercicios_Varios.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/Ejercicios_Varios.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/EliminarCaracteresRepetidos/EliminarCaracteresRepetidos.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/EliminarCaracteresRepetidos/EliminarCaracteresRepetidos.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/TodoCode/Encapsulamiento/Encapsulamiento.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/TodoCode/Encapsulamiento/Encapsulamiento.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/TodoCode/EscuelaMusica/EscuelaMusica.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/TodoCode/EscuelaMusica/EscuelaMusica.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/EstadosDeUnHilo/EstadosDeUnHilo.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/EstadosDeUnHilo/EstadosDeUnHilo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/Excepciones/Excepciones.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/Excepciones/Excepciones.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/FigurasGeometricas/FigurasGeometricas.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/FigurasGeometricas/FigurasGeometricas.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/FigurasGeometricas_InterfacePractice/FigurasGeometricas_InterfacePractice.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/FigurasGeometricas_InterfacePractice/FigurasGeometricas_InterfacePractice.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/MoureDevEjercicios/Fizz_Buzz/Fizz_Buzz.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/MoureDevEjercicios/Fizz_Buzz/Fizz_Buzz.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/TodoCode/FlightCompany/FlightCompany.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/TodoCode/FlightCompany/FlightCompany.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Basico-JAVA-SE/ForEach/ForEach.iml" filepath="$PROJECT_DIR$/JAVA/Basico-JAVA-SE/ForEach/ForEach.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/FormatoNombre/FormatoNombre.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/FormatoNombre/FormatoNombre.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/GraficaCircular/GraficaCircular.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/GraficaCircular/GraficaCircular.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/TodoCode/Herencia/Herencia.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/TodoCode/Herencia/Herencia.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/Hilos/Hilos.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/Hilos/Hilos.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/HilosConParametros/HilosConParametros.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/HilosConParametros/HilosConParametros.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/IntercambioVariables/IntercambioVariables.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/IntercambioVariables/IntercambioVariables.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/Interfaces/Interfaces.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/Interfaces/Interfaces.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/LimitarDecimales/LimitarDecimales.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/LimitarDecimales/LimitarDecimales.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/ListasTipoCola/ListasTipoCola.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/ListasTipoCola/ListasTipoCola.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/ListasTipoPila/ListasTipoPila.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/ListasTipoPila/ListasTipoPila.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/LongitudMayusculas/LongitudMayusculas.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/LongitudMayusculas/LongitudMayusculas.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/TodoCode/Merceria/Merceria.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/TodoCode/Merceria/Merceria.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/NumerosAleatorios/NumerosAleatorios.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/NumerosAleatorios/NumerosAleatorios.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/PalabrasUnicas/PalabrasUnicas.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/PalabrasUnicas/PalabrasUnicas.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/Palindromo/Palindromo.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/Palindromo/Palindromo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/Par_Impar/Par_Impar.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/Par_Impar/Par_Impar.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/Pokemon/Pokemon.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/Pokemon/Pokemon.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/TodoCode/Polimorfismo/Polimorfismo.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/TodoCode/Polimorfismo/Polimorfismo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/BD/Practice_CRUD/Practice_CRUD.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/BD/Practice_CRUD/Practice_CRUD.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/PromedioCalificaciones/PromedioCalificaciones.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/PromedioCalificaciones/PromedioCalificaciones.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Basico-JAVA-SE/PruebaCapas/PruebaCapas.iml" filepath="$PROJECT_DIR$/JAVA/Basico-JAVA-SE/PruebaCapas/PruebaCapas.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/TodoCode/PruebaTecnicaTrainee/PruebaTecnicaTrainee.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/TodoCode/PruebaTecnicaTrainee/PruebaTecnicaTrainee.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/RPG/RPG.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/RPG/RPG.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/Rectangulo/Rectangulo.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/Rectangulo/Rectangulo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/Recursividad/Recursividad.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/Recursividad/Recursividad.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/RecursividadFactorial/RecursividadFactorial.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/RecursividadFactorial/RecursividadFactorial.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/ReversoCadena/ReversoCadena.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/ReversoCadena/ReversoCadena.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/SimpleJavaLoginMD-main/SimpleJavaLoginMD-main.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/SimpleJavaLoginMD-main/SimpleJavaLoginMD-main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/SincronizacionDeHilos/SincronizacionDeHilos.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/SincronizacionDeHilos/SincronizacionDeHilos.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/BD/SistemaVehiculos/SistemaVehiculos.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/BD/SistemaVehiculos/SistemaVehiculos.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/BD/Sistema_Gestion_Biblioteca/Sistema_Gestion_Biblioteca.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/BD/Sistema_Gestion_Biblioteca/Sistema_Gestion_Biblioteca.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/TodoCode/SobreEscritura&amp;&amp;SobreCarga/SobreEscritura&amp;&amp;SobreCarga.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/TodoCode/SobreEscritura&amp;&amp;SobreCarga/SobreEscritura&amp;&amp;SobreCarga.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/SumaDeMatrices/SumaDeMatrices.iml" filepath="$PROJECT_DIR$/JAVA/Intermedio-POO/Geekpedia/SumaDeMatrices/SumaDeMatrices.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/SumaEnteros/SumaEnteros.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/SumaEnteros/SumaEnteros.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/TodoCode/TablaNotas/TablaNotas.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/TodoCode/TablaNotas/TablaNotas.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/TodoCode/TemperaturaCiudades/TemperaturaCiudades.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/TodoCode/TemperaturaCiudades/TemperaturaCiudades.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/BD/Tienda_Linea/Tienda_Linea.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/BD/Tienda_Linea/Tienda_Linea.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/TodoCode/TrianguloRectangulo/TrianguloRectangulo.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/TodoCode/TrianguloRectangulo/TrianguloRectangulo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/Arrays/Vectores/Vectores.iml" filepath="$PROJECT_DIR$/JAVA/Ejercicios/Ejercicios_Varios/Arrays/Vectores/Vectores.iml" />
+    </modules>
+  </component>
+</project>

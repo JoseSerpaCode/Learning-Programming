@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="SistemaVehiculos">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/JAVA/Ejercicios/BD/SistemaVehiculos/dist/SistemaVehiculos.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
