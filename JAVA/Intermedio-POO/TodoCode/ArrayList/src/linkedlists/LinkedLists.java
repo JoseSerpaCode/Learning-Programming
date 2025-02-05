@@ -25,8 +25,8 @@ public class LinkedLists {
 
         /*
         Eliminar un elemento en una LinkedList
-        lista.remove(1);
-        lista.remove("");
+        lista.remove(1); // Posición
+        lista.remove(""); // letra/palabra que contiene alguna posición el array
         lista.clear();  // Elimina todos los elementos
 
         --
