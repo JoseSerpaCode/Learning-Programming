@@ -1,25 +1,44 @@
-/JAVA/Ejercicios/Calculadora_SobreEscriutra&SobreCarga/nbproject/private/
-/JAVA/Ejercicios/FigurasGeometricas/nbproject/private/
-/JAVA/Ejercicios/FigurasGeometricas/build/
-/JAVA/Intermedio-POO/TodoCode/Encapsulamiento/nbproject/private/
-/JAVA/Ejercicios/Ejercicios_Varios/RPG/nbproject/private/
-/JAVA/Ejercicios/Ejercicios_Varios/RPG/build/
-/JAVA/Ejercicios/Ejercicios_Varios/RPG/dist/
-/JAVA/Ejercicios/Ejercicios_Varios/FigurasGeometricas_InterfacePractice/nbproject/private/
-/JAVA/Ejercicios/Ejercicios_Varios/FigurasGeometricas_InterfacePractice/build/
-/JAVA/Ejercicios/Ejercicios_Varios/Pokemon/nbproject/private/
-/JAVA/Ejercicios/Ejercicios_Varios/Pokemon/build/
-/JAVA/Ejercicios/Ejercicios_Varios/EliminarCaracteresRepetidos/build/
-/JAVA/Intermedio-POO/TodoCode/Prueba/nbproject/private/
-/JAVA/Intermedio-POO/TodoCode/Prueba/build/
-/JAVA/Intermedio-POO/TodoCode/Prueba/dist/
-/JAVA/Intermedio-POO/TodoCode/EscuelaMusica/nbproject/private/
-/JAVA/Intermedio-POO/TodoCode/EscuelaMusica/build/
-CPP/Ejercicios/.vscode/settings.json
-JAVA/Intermedio-POO/TodoCode/TryCatch/TryCatch.iml
-JAVA/Intermedio-POO/TodoCode/TryCatch/.idea/misc.xml
-JAVA/Intermedio-POO/TodoCode/TryCatch/.idea/modules.xml
-JAVA/Intermedio-POO/TodoCode/TryCatch/.idea/vcs.xml
-CPP/Ejercicios/ExerciseInClass/src/Ventas.exe
-CPP/Ejercicios/ExerciseInClass/src/RetoProgramacion.exe
+# Ignorar archivos binarios y ejecutables
 *.exe
+*.dll
+*.out
+*.o
+*.a
+*.so
+*.class
+*.jar
+*.war
+*.ear
+
+# Ignorar carpetas de compilación
+/build/
+/dist/
+/target/
+/bin/
+/out/
+
+# Ignorar archivos de configuración de NetBeans
+**/nbproject/private/
+**/nbproject/build-impl.xml
+**/nbproject/genfiles.properties
+**/nbproject/project.properties
+**/nbproject/project.xml
+
+# Ignorar archivos de configuración de IntelliJ IDEA
+**/.idea/
+*.iml
+*.ipr
+*.iws
+
+# Ignorar archivos de configuración de VS Code
+**/.vscode/
+**/.vscode/settings.json
+
+# Ignorar archivos temporales y de respaldo
+*.log
+*.tmp
+*.swp
+*.bak
+*.cache
+.DS_Store
+Thumbs.db
