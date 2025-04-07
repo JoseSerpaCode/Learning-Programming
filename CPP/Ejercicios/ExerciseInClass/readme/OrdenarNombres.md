@@ -35,4 +35,3 @@ Pedro - 15
 ### Notas
 - No puedes usar la biblioteca `<vector>`, solo arrays tradicionales.
 - Usa `std::string` para manejar los nombres de los jugadores.
-- La generación de números aleatorios debe hacerse con `<random>`, no con `rand()`.
